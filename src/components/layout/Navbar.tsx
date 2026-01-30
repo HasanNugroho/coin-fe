@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Wallet, LogOut, LayoutDashboard, Wallet2, Receipt, BarChart3, User, Shield } from 'lucide-react';
+import { Wallet, LogOut, LayoutDashboard, Wallet2, Receipt, BarChart3, User, Shield, Settings } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store';
 import { Button } from '../ui/button';
 
@@ -16,8 +16,6 @@ export function Navbar() {
         { path: '/kantong', label: 'Kantong', icon: Wallet2 },
         { path: '/transactions', label: 'Transactions', icon: Receipt },
         { path: '/reports', label: 'Reports', icon: BarChart3 },
-        { path: '/profile', label: 'Profile', icon: User },
-        { path: '/admin', label: 'Admin', icon: Shield },
     ];
 
     return (
@@ -51,6 +49,12 @@ export function Navbar() {
                     </div>
                     <div className="flex items-center gap-2">
                         <span className="mr-2 text-sm text-gray-700">{user?.name}</span>
+                        <Link to="/settings/auto-allocation">
+                            <Button variant="ghost" size="sm">
+                                <Settings className="mr-2 h-4 w-4" />
+                                Settings
+                            </Button>
+                        </Link>
                         {user?.role === 'admin' && (
                             <Link to="/admin">
                                 <Button variant="outline" size="sm">

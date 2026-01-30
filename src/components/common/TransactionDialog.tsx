@@ -23,6 +23,8 @@ const transactionSchema = z.object({
     date: z.string(),
     category: z.string(),
     kantongId: z.string(),
+    platformId: z.string().optional(),
+    source: z.string().optional(),
     note: z.string().optional(),
 });
 
@@ -46,16 +48,17 @@ const categories: TransactionCategory[] = [
     'Custom',
 ];
 
-const types: TransactionType[] = ['income', 'expense'];
+const types: TransactionType[] = ['income', 'expense', 'transfer'];
 
 export function TransactionDialog({ open, onOpenChange, transaction, onSubmit }: TransactionDialogProps) {
-    const { kantongs, fetchKantongs } = useFinanceStore();
+    const { kantongs, platforms, fetchKantongs, fetchPlatforms } = useFinanceStore();
 
     useEffect(() => {
-        if (open && kantongs.length === 0) {
-            fetchKantongs();
+        if (open) {
+            if (kantongs.length === 0) fetchKantongs();
+            if (platforms.length === 0) fetchPlatforms();
         }
-    }, [open, kantongs.length, fetchKantongs]);
+    }, [open, kantongs.length, platforms.length, fetchKantongs, fetchPlatforms]);
 
     const {
         register,
@@ -71,6 +74,8 @@ export function TransactionDialog({ open, onOpenChange, transaction, onSubmit }:
             date: new Date().toISOString().split('T')[0],
             category: 'Food',
             kantongId: kantongs[0]?.id || '',
+            platformId: '',
+            source: 'manual',
             note: '',
         },
     });
@@ -173,6 +178,42 @@ export function TransactionDialog({ open, onOpenChange, transaction, onSubmit }:
                         {selectedType === 'expense' && (
                             <p className="text-xs text-gray-500">Locked kantongs are not available</p>
                         )}
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="platformId">Platform (Optional)</Label>
+                        <Select
+                            value={watch('platformId') || ''}
+                            onValueChange={(value) => setValue('platformId', value)}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select platform" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {platforms.map((platform) => (
+                                    <SelectItem key={platform.id} value={platform.id}>
+                                        {platform.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="source">Source</Label>
+                        <Select
+                            value={watch('source') || 'manual'}
+                            onValueChange={(value) => setValue('source', value)}
+                        >
+                            <SelectTrigger>
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="manual">Manual</SelectItem>
+                                <SelectItem value="bot">Bot</SelectItem>
+                                <SelectItem value="llm">LLM</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
 
                     <div className="space-y-2">

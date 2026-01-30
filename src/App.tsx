@@ -6,6 +6,11 @@ import { KantongList } from './pages/kantong/KantongList';
 import { TransactionList } from './pages/transactions/TransactionList';
 import { Reports } from './pages/reports/Reports';
 import { Profile } from './pages/profile/Profile';
+import PlatformManagement from './pages/platform/PlatformManagement';
+import AllocationManagement from './pages/allocation/AllocationManagement';
+import LiabilityManagement from './pages/liability/LiabilityManagement';
+import SavingTargetManagement from './pages/saving-target/SavingTargetManagement';
+import AutoAllocationPage from './pages/settings/AutoAllocationPage';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { UserManagement } from './pages/admin/UserManagement';
 import { CategoryManagement } from './pages/admin/CategoryManagement';
@@ -44,6 +49,11 @@ function App() {
           <Route path="transactions" element={<TransactionList />} />
           <Route path="reports" element={<Reports />} />
           <Route path="profile" element={<Profile />} />
+          <Route path="platforms" element={<PlatformManagement />} />
+          <Route path="allocations" element={<AllocationManagement />} />
+          <Route path="liabilities" element={<LiabilityManagement />} />
+          <Route path="saving-targets" element={<SavingTargetManagement />} />
+          <Route path="settings/auto-allocation" element={<AutoAllocationPage />} />
         </Route>
 
         <Route

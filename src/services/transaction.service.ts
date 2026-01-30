@@ -8,6 +8,8 @@ const DUMMY_TRANSACTIONS: Transaction[] = [
         date: '2026-01-01',
         category: 'Salary',
         kantongId: '1',
+        platformId: '1',
+        source: 'manual',
         note: 'Monthly salary',
     },
     {
@@ -17,6 +19,8 @@ const DUMMY_TRANSACTIONS: Transaction[] = [
         date: '2026-01-05',
         category: 'Food',
         kantongId: '1',
+        platformId: '8',
+        source: 'manual',
         note: 'Groceries',
     },
     {
@@ -26,6 +30,8 @@ const DUMMY_TRANSACTIONS: Transaction[] = [
         date: '2026-01-10',
         category: 'Shopping',
         kantongId: '1',
+        platformId: '4',
+        source: 'manual',
         note: 'New shoes',
     },
     {
@@ -35,6 +41,8 @@ const DUMMY_TRANSACTIONS: Transaction[] = [
         date: '2026-01-15',
         category: 'Freelance',
         kantongId: '1',
+        platformId: '1',
+        source: 'manual',
         note: 'Web design project',
     },
     {
@@ -44,6 +52,8 @@ const DUMMY_TRANSACTIONS: Transaction[] = [
         date: '2026-01-20',
         category: 'Bills',
         kantongId: '2',
+        platformId: '1',
+        source: 'manual',
         note: 'Electricity and water',
     },
     {
@@ -53,6 +63,8 @@ const DUMMY_TRANSACTIONS: Transaction[] = [
         date: '2026-01-22',
         category: 'Transport',
         kantongId: '1',
+        platformId: '8',
+        source: 'manual',
         note: 'Fuel',
     },
     {
@@ -62,6 +74,8 @@ const DUMMY_TRANSACTIONS: Transaction[] = [
         date: '2026-01-25',
         category: 'Entertainment',
         kantongId: '4',
+        platformId: '5',
+        source: 'manual',
         note: 'Concert tickets',
     },
 ];

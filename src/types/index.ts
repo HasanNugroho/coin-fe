@@ -29,7 +29,8 @@ export type TransactionCategory =
     | 'Entertainment'
     | 'Custom';
 
-export type TransactionType = 'income' | 'expense';
+export type TransactionType = 'income' | 'expense' | 'transfer';
+export type TransactionSource = 'manual' | 'bot' | 'llm';
 
 export interface Transaction {
     id: string;
@@ -38,6 +39,47 @@ export interface Transaction {
     date: string;
     category: TransactionCategory;
     kantongId: string;
+    platformId?: string;
+    source?: TransactionSource;
+    note?: string;
+    linkedTransactionId?: string;
+    liabilityId?: string;
+}
+
+export type PlatformType = 'bank' | 'ewallet' | 'cash' | 'credit';
+
+export interface Platform {
+    id: string;
+    name: string;
+    type: PlatformType;
+    isSystem: boolean;
+}
+
+export interface AllocationRule {
+    id: string;
+    targetKantongId: string;
+    priority: 'high' | 'medium' | 'low';
+    type: 'percentage' | 'nominal';
+    value: number;
+    isActive: boolean;
+}
+
+export interface Liability {
+    id: string;
+    name: string;
+    type: 'credit' | 'installment' | 'paylater';
+    totalAmount: number;
+    paidAmount: number;
+    dueDate: string;
+    note?: string;
+}
+
+export interface SavingTarget {
+    id: string;
+    name: string;
+    kantongId: string;
+    targetAmount: number;
+    deadline: string;
     note?: string;
 }
 
