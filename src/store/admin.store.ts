@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import type { AdminUser, Category, DefaultKantongTemplate } from '../types';
+import type { User, Category, DefaultKantongTemplate } from '../types';
+import { authService } from '../services/auth.service';
 import { adminService } from '../services/admin.service';
 
 interface DashboardStats {
@@ -11,7 +12,7 @@ interface DashboardStats {
 }
 
 interface AdminState {
-    users: AdminUser[];
+    users: User[];
     categories: Category[];
     kantongTemplates: DefaultKantongTemplate[];
     dashboardStats: DashboardStats | null;
@@ -21,6 +22,7 @@ interface AdminState {
     fetchDashboardStats: () => Promise<void>;
     fetchUsers: () => Promise<void>;
     updateUserStatus: (id: string, status: 'active' | 'disabled') => Promise<void>;
+    deleteUser: (id: string) => Promise<void>;
     fetchCategories: () => Promise<void>;
     createCategory: (category: Omit<Category, 'id'>) => Promise<void>;
     updateCategory: (id: string, updates: Partial<Category>) => Promise<void>;
@@ -54,7 +56,7 @@ export const useAdminStore = create<AdminState>((set) => ({
     fetchUsers: async () => {
         set({ isLoading: true, error: null });
         try {
-            const users = await adminService.getUsers();
+            const { users } = await authService.listUsers();
             set({ users, isLoading: false });
         } catch (error) {
             set({
@@ -67,12 +69,31 @@ export const useAdminStore = create<AdminState>((set) => ({
     updateUserStatus: async (id, status) => {
         set({ isLoading: true, error: null });
         try {
-            await adminService.updateUserStatus(id, status);
-            const users = await adminService.getUsers();
+            if (status === 'active') {
+                await authService.enableUser(id);
+            } else {
+                await authService.disableUser(id);
+            }
+            const { users } = await authService.listUsers();
             set({ users, isLoading: false });
         } catch (error) {
             set({
                 error: error instanceof Error ? error.message : 'Failed to update user status',
+                isLoading: false,
+            });
+            throw error;
+        }
+    },
+
+    deleteUser: async (id) => {
+        set({ isLoading: true, error: null });
+        try {
+            await authService.deleteUser(id);
+            const { users } = await authService.listUsers();
+            set({ users, isLoading: false });
+        } catch (error) {
+            set({
+                error: error instanceof Error ? error.message : 'Failed to delete user',
                 isLoading: false,
             });
             throw error;

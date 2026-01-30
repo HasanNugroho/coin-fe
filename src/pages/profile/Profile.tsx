@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useProfileStore } from '../../store/profile.store';
+import { useAuthStore } from '../../store/auth.store';
 import { useLanguageStore } from '../../store/language.store';
 import { t } from '../../i18n';
 import { Button } from '../../components/ui/button';
@@ -12,21 +12,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../..
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 
 const profileSchema = z.object({
+    name: z.string().min(1, 'Name is required'),
+    email: z.string().email('Invalid email'),
     phone: z.string().optional().refine(
         (val) => !val || /^[+\d\s\-()]+$/.test(val),
         'Invalid phone number format'
     ),
     telegramId: z.string().optional(),
     baseSalary: z.number().min(0, 'Salary must be positive').optional(),
-    salaryCycle: z.enum(['monthly', 'weekly', 'bi-weekly']),
-    salaryDay: z.number().min(1).max(31, 'Day must be between 1-31'),
+    salaryCycle: z.enum(['daily', 'weekly', 'monthly']),
+    salaryDay: z.number().min(1).max(28, 'Day must be between 1-28'),
     currency: z.string().min(3).max(3),
+    language: z.enum(['id', 'en']),
 });
 
 type ProfileFormData = z.infer<typeof profileSchema>;
 
 export function Profile() {
-    const { profile, fetchProfile, updateProfile, isLoading, error, clearError } = useProfileStore();
+    const { user, fetchProfile, updateProfile, isLoading, error, clearError } = useAuthStore();
     const { language } = useLanguageStore();
     const [isEditing, setIsEditing] = useState(false);
 
@@ -42,26 +45,32 @@ export function Profile() {
         formState: { errors, isSubmitting },
     } = useForm<ProfileFormData>({
         resolver: zodResolver(profileSchema),
-        defaultValues: profile || {
+        defaultValues: user || {
+            name: '',
+            email: '',
             phone: '',
             telegramId: '',
             baseSalary: 0,
             salaryCycle: 'monthly',
             salaryDay: 1,
             currency: 'IDR',
+            language: 'id',
         },
     });
 
     useEffect(() => {
-        if (profile) {
-            setValue('phone', profile.phone || '');
-            setValue('telegramId', profile.telegramId || '');
-            setValue('baseSalary', profile.baseSalary || 0);
-            setValue('salaryCycle', profile.salaryCycle as 'monthly' | 'weekly' | 'bi-weekly');
-            setValue('salaryDay', profile.salaryDay);
-            setValue('currency', profile.currency);
+        if (user) {
+            setValue('name', user.name || '');
+            setValue('email', user.email || '');
+            setValue('phone', user.phone || '');
+            setValue('telegramId', user.telegramId || '');
+            setValue('baseSalary', user.baseSalary || 0);
+            setValue('salaryCycle', (user.salaryCycle || 'monthly') as 'daily' | 'weekly' | 'monthly');
+            setValue('salaryDay', user.salaryDay || 1);
+            setValue('currency', user.currency || 'IDR');
+            setValue('language', (user.language || 'id') as 'id' | 'en');
         }
-    }, [profile, setValue]);
+    }, [user, setValue]);
 
     const selectedCycle = watch('salaryCycle');
 
@@ -74,7 +83,7 @@ export function Profile() {
         }
     };
 
-    if (isLoading && !profile) {
+    if (isLoading && !user) {
         return (
             <div className="flex h-96 items-center justify-center">
                 <div className="text-gray-500">{t(language, 'common.loading')}</div>
@@ -103,28 +112,30 @@ export function Profile() {
                     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
                         <div className="grid gap-6 md:grid-cols-2">
                             <div className="space-y-2">
-                                <Label htmlFor="email">Email (Read-only)</Label>
+                                <Label htmlFor="name">{t(language, 'profile.name')}</Label>
                                 <Input
-                                    id="email"
-                                    type="email"
-                                    value={profile?.email || ''}
-                                    disabled
-                                    className="bg-gray-50"
+                                    id="name"
+                                    placeholder="John Doe"
+                                    disabled={!isEditing}
+                                    {...register('name')}
+                                    className={!isEditing ? 'bg-gray-50' : ''}
                                 />
-                                <p className="text-xs text-gray-500">Email cannot be changed</p>
+                                {errors.name && (
+                                    <p className="text-sm text-red-600">{errors.name.message}</p>
+                                )}
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="currency">Currency</Label>
+                                <Label htmlFor="email">Email</Label>
                                 <Input
-                                    id="currency"
-                                    placeholder="IDR"
+                                    id="email"
+                                    type="email"
                                     disabled={!isEditing}
-                                    {...register('currency')}
+                                    {...register('email')}
                                     className={!isEditing ? 'bg-gray-50' : ''}
                                 />
-                                {errors.currency && (
-                                    <p className="text-sm text-red-600">{errors.currency.message}</p>
+                                {errors.email && (
+                                    <p className="text-sm text-red-600">{errors.email.message}</p>
                                 )}
                             </div>
 
@@ -156,6 +167,42 @@ export function Profile() {
                                     <p className="text-sm text-red-600">{errors.telegramId.message}</p>
                                 )}
                             </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="currency">Currency</Label>
+                                <Input
+                                    id="currency"
+                                    placeholder="IDR"
+                                    disabled={!isEditing}
+                                    {...register('currency')}
+                                    className={!isEditing ? 'bg-gray-50' : ''}
+                                />
+                                {errors.currency && (
+                                    <p className="text-sm text-red-600">{errors.currency.message}</p>
+                                )}
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="language">{language === 'id' ? 'Bahasa' : 'Language'}</Label>
+                                <Select
+                                    value={watch('language')}
+                                    onValueChange={(value) =>
+                                        setValue('language', value as 'id' | 'en')
+                                    }
+                                    disabled={!isEditing}
+                                >
+                                    <SelectTrigger disabled={!isEditing}>
+                                        <SelectValue placeholder="Select language" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="id">🇮🇩 Indonesian</SelectItem>
+                                        <SelectItem value="en">🇬🇧 English</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                {errors.language && (
+                                    <p className="text-sm text-red-600">{errors.language.message}</p>
+                                )}
+                            </div>
                         </div>
 
                         <div className="border-t pt-6">
@@ -181,7 +228,7 @@ export function Profile() {
                                     <Select
                                         value={selectedCycle}
                                         onValueChange={(value) =>
-                                            setValue('salaryCycle', value as 'monthly' | 'weekly' | 'bi-weekly')
+                                            setValue('salaryCycle', value as 'daily' | 'weekly' | 'monthly')
                                         }
                                         disabled={!isEditing}
                                     >
@@ -189,8 +236,8 @@ export function Profile() {
                                             <SelectValue placeholder="Select cycle" />
                                         </SelectTrigger>
                                         <SelectContent>
+                                            <SelectItem value="daily">Daily</SelectItem>
                                             <SelectItem value="weekly">Weekly</SelectItem>
-                                            <SelectItem value="bi-weekly">Bi-weekly</SelectItem>
                                             <SelectItem value="monthly">Monthly</SelectItem>
                                         </SelectContent>
                                     </Select>
@@ -202,7 +249,7 @@ export function Profile() {
                                         id="salaryDay"
                                         type="number"
                                         min="1"
-                                        max="31"
+                                        max="28"
                                         placeholder="1"
                                         disabled={!isEditing}
                                         {...register('salaryDay', { valueAsNumber: true })}
@@ -242,7 +289,7 @@ export function Profile() {
                 </CardContent>
             </Card>
 
-            {profile?.role === 'admin' && (
+            {user?.role === 'admin' && (
                 <Card className="border-blue-200 bg-blue-50">
                     <CardHeader>
                         <CardTitle className="text-blue-900">Admin Role</CardTitle>

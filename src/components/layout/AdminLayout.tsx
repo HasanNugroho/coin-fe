@@ -92,12 +92,14 @@ export function AdminLayout() {
 
                                 <DropdownMenuContent align="end" className="w-56">
                                     <DropdownMenuLabel>
-                                        {user?.name}
+                                        <div>
+                                            <p className="font-semibold">{user?.name}</p>
+                                            <p className="text-xs text-gray-500">{user?.email}</p>
+                                        </div>
                                     </DropdownMenuLabel>
 
                                     <DropdownMenuSeparator />
 
-                                    {/* Language */}
                                     <DropdownMenuItem asChild>
                                         <div className="w-full">
                                             <LanguageSwitcher />
@@ -110,6 +112,13 @@ export function AdminLayout() {
                                         <Link to="/profile" className="flex items-center">
                                             <User className="mr-2 h-4 w-4" />
                                             {t(language, "navigation.profile")}
+                                        </Link>
+                                    </DropdownMenuItem>
+
+                                    <DropdownMenuItem asChild>
+                                        <Link to="/settings/auto-allocation" className="flex items-center">
+                                            <Settings className="mr-2 h-4 w-4" />
+                                            {t(language, "navigation.settings")}
                                         </Link>
                                     </DropdownMenuItem>
 

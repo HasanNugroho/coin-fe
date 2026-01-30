@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Login } from './pages/auth/Login';
 import { Register } from './pages/auth/Register';
@@ -22,7 +23,14 @@ import { AdminRoute } from './components/common/AdminRoute';
 import { useAuthStore } from './store/auth.store';
 
 function App() {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, restoreSession } = useAuthStore();
+
+  useEffect(() => {
+    const initializeSession = async () => {
+      await restoreSession();
+    };
+    initializeSession();
+  }, [restoreSession]);
 
   return (
     <BrowserRouter>

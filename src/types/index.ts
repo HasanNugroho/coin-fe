@@ -87,19 +87,23 @@ export interface User {
     id: string;
     email: string;
     name: string;
+    phone?: string;
+    telegramId?: string;
+    currency?: string;
+    baseSalary?: number;
+    salaryCycle?: 'daily' | 'weekly' | 'monthly';
+    salaryDay?: number;
+    language?: 'id' | 'en';
+    is_active?: boolean;
+    created_at?: string;
+    updated_at?: string;
     role?: 'user' | 'admin';
 }
 
-export interface UserProfile {
-    id: string;
-    email: string;
-    phone?: string;
-    telegramId?: string;
-    baseSalary?: number;
-    salaryCycle: 'monthly' | 'weekly' | 'bi-weekly';
-    salaryDay: number;
-    currency: string;
-    role: 'user' | 'admin';
+export interface UserProfile extends User {
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
 }
 
 export interface AdminUser {
