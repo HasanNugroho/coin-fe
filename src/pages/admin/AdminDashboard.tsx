@@ -1,10 +1,13 @@
 import { useEffect } from 'react';
 import { Users, Wallet2, Receipt, TrendingUp } from 'lucide-react';
 import { useAdminStore } from '../../store/admin.store';
+import { useLanguageStore } from '../../store/language.store';
+import { t } from '../../i18n';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 export function AdminDashboard() {
+    const { language } = useLanguageStore();
     const { dashboardStats, fetchDashboardStats, isLoading } = useAdminStore();
 
     useEffect(() => {
@@ -14,35 +17,35 @@ export function AdminDashboard() {
     if (isLoading || !dashboardStats) {
         return (
             <div className="flex h-96 items-center justify-center">
-                <div className="text-gray-500">Loading admin dashboard...</div>
+                <div className="text-gray-500">{t(language, 'common.loading')}</div>
             </div>
         );
     }
 
     const stats = [
         {
-            title: 'Total Users',
+            title: language === 'id' ? 'Total Pengguna' : 'Total Users',
             value: dashboardStats.totalUsers,
             icon: Users,
             color: 'text-blue-600',
             bgColor: 'bg-blue-100',
         },
         {
-            title: 'Active Users',
+            title: language === 'id' ? 'Pengguna Aktif' : 'Active Users',
             value: dashboardStats.activeUsers,
             icon: TrendingUp,
             color: 'text-green-600',
             bgColor: 'bg-green-100',
         },
         {
-            title: 'Total Kantong',
+            title: language === 'id' ? 'Total Kantong' : 'Total Kantong',
             value: dashboardStats.totalKantong,
             icon: Wallet2,
             color: 'text-purple-600',
             bgColor: 'bg-purple-100',
         },
         {
-            title: 'Total Transactions',
+            title: language === 'id' ? 'Total Transaksi' : 'Total Transactions',
             value: dashboardStats.totalTransactions,
             icon: Receipt,
             color: 'text-orange-600',
@@ -53,8 +56,8 @@ export function AdminDashboard() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-                <p className="mt-2 text-gray-600">System overview and statistics</p>
+                <h1 className="text-3xl font-bold text-gray-900">{t(language, 'admin.dashboard')}</h1>
+                <p className="mt-2 text-gray-600">{language === 'id' ? 'Ringkasan sistem dan statistik' : 'System overview and statistics'}</p>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -78,7 +81,7 @@ export function AdminDashboard() {
 
             <Card>
                 <CardHeader>
-                    <CardTitle>User Growth</CardTitle>
+                    <CardTitle>{language === 'id' ? 'Pertumbuhan Pengguna' : 'User Growth'}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <ResponsiveContainer width="100%" height={300}>

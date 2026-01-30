@@ -1,12 +1,15 @@
 import { useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { useFinanceStore } from '../../store/finance.store';
+import { useLanguageStore } from '../../store/language.store';
+import { t } from '../../i18n';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
 import { formatCurrency } from '../../utils/format';
 
 export function Reports() {
     const { reportData, fetchReportData, isLoading } = useFinanceStore();
+    const { language } = useLanguageStore();
 
     useEffect(() => {
         const startDate = '2025-09-01';
@@ -17,7 +20,7 @@ export function Reports() {
     if (isLoading || !reportData) {
         return (
             <div className="flex h-96 items-center justify-center">
-                <div className="text-gray-500">Loading reports...</div>
+                <div className="text-gray-500">{t(language, 'common.loading')}</div>
             </div>
         );
     }
@@ -27,22 +30,22 @@ export function Reports() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-3xl font-bold text-gray-900">Reports</h1>
-                <p className="mt-2 text-gray-600">Analyze your spending patterns</p>
+                <h1 className="text-3xl font-bold text-gray-900">{t(language, 'reports.title')}</h1>
+                <p className="mt-2 text-gray-600">{language === 'id' ? 'Analisis pola pengeluaran Anda' : 'Analyze your spending patterns'}</p>
             </div>
 
             <Tabs defaultValue="category" className="space-y-4">
                 <TabsList>
-                    <TabsTrigger value="category">By Category</TabsTrigger>
-                    <TabsTrigger value="kantong">By Kantong</TabsTrigger>
-                    <TabsTrigger value="monthly">Monthly Summary</TabsTrigger>
+                    <TabsTrigger value="category">{language === 'id' ? 'Berdasarkan Kategori' : 'By Category'}</TabsTrigger>
+                    <TabsTrigger value="kantong">{language === 'id' ? 'Berdasarkan Kantong' : 'By Kantong'}</TabsTrigger>
+                    <TabsTrigger value="monthly">{language === 'id' ? 'Ringkasan Bulanan' : 'Monthly Summary'}</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="category" className="space-y-4">
                     <div className="grid gap-6 md:grid-cols-2">
                         <Card>
                             <CardHeader>
-                                <CardTitle>Expense by Category</CardTitle>
+                                <CardTitle>{language === 'id' ? 'Pengeluaran Berdasarkan Kategori' : 'Expense by Category'}</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <ResponsiveContainer width="100%" height={300}>

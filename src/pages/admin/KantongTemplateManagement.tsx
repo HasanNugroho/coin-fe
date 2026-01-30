@@ -4,6 +4,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAdminStore } from '../../store/admin.store';
+import { useLanguageStore } from '../../store/language.store';
+import { t } from '../../i18n';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
@@ -31,6 +33,7 @@ const categories: KantongCategory[] = [
 ];
 
 export function KantongTemplateManagement() {
+    const { language } = useLanguageStore();
     const {
         kantongTemplates,
         fetchKantongTemplates,
@@ -97,7 +100,7 @@ export function KantongTemplateManagement() {
     };
 
     const handleDelete = async (id: string) => {
-        if (confirm('Are you sure you want to delete this template?')) {
+        if (confirm(t(language, 'messages.confirmDelete'))) {
             try {
                 const updated = kantongTemplates.filter((t) => t.id !== id);
                 await updateKantongTemplates(updated);
@@ -110,33 +113,33 @@ export function KantongTemplateManagement() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-3xl font-bold text-gray-900">Default Kantong Template</h1>
-                <p className="mt-2 text-gray-600">Manage default kantong templates for new users</p>
+                <h1 className="text-3xl font-bold text-gray-900">{t(language, 'admin.kantongTemplate')}</h1>
+                <p className="mt-2 text-gray-600">{language === 'id' ? 'Kelola template kantong default untuk pengguna baru' : 'Manage default kantong templates for new users'}</p>
             </div>
 
             <div className="grid gap-6 md:grid-cols-3">
                 <Card className="md:col-span-1">
                     <CardHeader>
                         <CardTitle className="text-lg">
-                            {editingId ? 'Edit Template' : 'Add Template'}
+                            {editingId ? t(language, 'admin.editTemplate') : t(language, 'admin.addTemplate')}
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
                         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
                             <div className="space-y-2">
-                                <Label htmlFor="name">Kantong Name</Label>
+                                <Label htmlFor="name">{language === 'id' ? 'Nama Kantong' : 'Kantong Name'}</Label>
                                 <Input id="name" placeholder="e.g., Main Wallet" {...register('name')} />
                                 {errors.name && <p className="text-sm text-red-600">{errors.name.message}</p>}
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="category">Category</Label>
+                                <Label htmlFor="category">{t(language, 'kantong.category')}</Label>
                                 <Select
                                     value={selectedCategory}
                                     onValueChange={(value) => setValue('category', value)}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select category" />
+                                        <SelectValue placeholder={t(language, 'transaction.selectCategory')} />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {categories.map((cat) => (
@@ -149,7 +152,7 @@ export function KantongTemplateManagement() {
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="initialBalance">Initial Balance (Optional)</Label>
+                                <Label htmlFor="initialBalance">{language === 'id' ? 'Saldo Awal (Opsional)' : 'Initial Balance (Optional)'}</Label>
                                 <Input
                                     id="initialBalance"
                                     type="number"
@@ -169,13 +172,13 @@ export function KantongTemplateManagement() {
                                     {...register('isLocked')}
                                 />
                                 <Label htmlFor="isLocked" className="cursor-pointer">
-                                    Locked by default
+                                    {language === 'id' ? 'Terkunci secara default' : 'Locked by default'}
                                 </Label>
                             </div>
 
                             <div className="flex gap-2 pt-4">
                                 <Button type="submit" className="flex-1" disabled={isSubmitting}>
-                                    {isSubmitting ? 'Saving...' : editingId ? 'Update' : 'Add'}
+                                    {isSubmitting ? `${t(language, 'common.save')}...` : editingId ? t(language, 'common.edit') : t(language, 'common.add')}
                                 </Button>
                                 {editingId && (
                                     <Button
@@ -186,7 +189,7 @@ export function KantongTemplateManagement() {
                                             reset();
                                         }}
                                     >
-                                        Cancel
+                                        {t(language, 'common.cancel')}
                                     </Button>
                                 )}
                             </div>
@@ -196,12 +199,12 @@ export function KantongTemplateManagement() {
 
                 <Card className="md:col-span-2">
                     <CardHeader>
-                        <CardTitle>Templates</CardTitle>
+                        <CardTitle>{language === 'id' ? 'Template' : 'Templates'}</CardTitle>
                     </CardHeader>
                     <CardContent>
                         {kantongTemplates.length === 0 ? (
                             <div className="flex h-32 items-center justify-center">
-                                <p className="text-gray-500">No templates defined</p>
+                                <p className="text-gray-500">{language === 'id' ? 'Tidak ada template yang ditentukan' : 'No templates defined'}</p>
                             </div>
                         ) : (
                             <div className="space-y-2">
@@ -214,7 +217,7 @@ export function KantongTemplateManagement() {
                                             <p className="font-medium">{template.name}</p>
                                             <div className="flex items-center gap-2 text-xs text-gray-500">
                                                 <span>{template.category}</span>
-                                                {template.isLocked && <span>• Locked</span>}
+                                                {template.isLocked && <span>• {language === 'id' ? 'Terkunci' : 'Locked'}</span>}
                                             </div>
                                         </div>
                                         <div className="flex gap-2">

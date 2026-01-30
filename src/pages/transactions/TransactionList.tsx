@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Plus, ArrowUpCircle, ArrowDownCircle, Trash2, Edit } from 'lucide-react';
 import { useFinanceStore } from '../../store/finance.store';
+import { useLanguageStore } from '../../store/language.store';
+import { t } from '../../i18n';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { TransactionDialog } from '../../components/common/TransactionDialog';
@@ -18,6 +20,7 @@ export function TransactionList() {
         deleteTransaction,
         isLoading,
     } = useFinanceStore();
+    const { language } = useLanguageStore();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [selectedTransaction, setSelectedTransaction] = useState<Transaction | undefined>();
 
@@ -41,7 +44,7 @@ export function TransactionList() {
     };
 
     const handleDelete = async (id: string) => {
-        if (confirm('Are you sure you want to delete this transaction?')) {
+        if (confirm(t(language, 'messages.confirmDelete'))) {
             await deleteTransaction(id);
         }
     };
@@ -58,7 +61,7 @@ export function TransactionList() {
     if (isLoading && transactions.length === 0) {
         return (
             <div className="flex h-96 items-center justify-center">
-                <div className="text-gray-500">Loading transactions...</div>
+                <div className="text-gray-500">{t(language, 'common.loading')}</div>
             </div>
         );
     }
@@ -67,26 +70,26 @@ export function TransactionList() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Transactions</h1>
-                    <p className="mt-2 text-gray-600">Track your income and expenses</p>
+                    <h1 className="text-3xl font-bold text-gray-900">{t(language, 'transaction.title')}</h1>
+                    <p className="mt-2 text-gray-600">{language === 'id' ? 'Lacak pendapatan dan pengeluaran Anda' : 'Track your income and expenses'}</p>
                 </div>
                 <Button onClick={handleNewTransaction}>
                     <Plus className="mr-2 h-4 w-4" />
-                    New Transaction
+                    {t(language, 'transaction.addTransaction')}
                 </Button>
             </div>
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Recent Transactions</CardTitle>
+                    <CardTitle>{language === 'id' ? 'Transaksi Terbaru' : 'Recent Transactions'}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     {transactions.length === 0 ? (
                         <div className="flex h-32 flex-col items-center justify-center">
-                            <p className="text-gray-500">No transactions yet</p>
+                            <p className="text-gray-500">{t(language, 'transaction.noTransactions')}</p>
                             <Button className="mt-4" onClick={handleNewTransaction}>
                                 <Plus className="mr-2 h-4 w-4" />
-                                Add Your First Transaction
+                                {language === 'id' ? 'Tambah Transaksi Pertama' : 'Add Your First Transaction'}
                             </Button>
                         </div>
                     ) : (

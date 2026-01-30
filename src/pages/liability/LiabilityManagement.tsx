@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useFinanceStore } from '../../store/finance.store';
+import { useLanguageStore } from '../../store/language.store';
+import { t } from '../../i18n';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
@@ -9,6 +11,7 @@ import { Trash2, Edit2 } from 'lucide-react';
 import type { Liability } from '../../types';
 
 export default function LiabilityManagement() {
+    const { language } = useLanguageStore();
     const { liabilities, isLoading, error, fetchLiabilities, createLiability, updateLiability, deleteLiability } = useFinanceStore();
     const [formData, setFormData] = useState<Omit<Liability, 'id'>>({
         name: '',
@@ -64,7 +67,7 @@ export default function LiabilityManagement() {
     };
 
     const handleDelete = async (id: string) => {
-        if (confirm('Are you sure you want to delete this liability?')) {
+        if (confirm(t(language, 'messages.confirmDelete'))) {
             try {
                 await deleteLiability(id);
             } catch (err) {
@@ -80,8 +83,8 @@ export default function LiabilityManagement() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-3xl font-bold">Liabilities</h1>
-                <p className="text-gray-600 mt-2">Manage credit cards, installments, and paylater obligations</p>
+                <h1 className="text-3xl font-bold">{t(language, 'liability.title')}</h1>
+                <p className="text-gray-600 mt-2">{language === 'id' ? 'Kelola kartu kredit, cicilan, dan kewajiban paylater' : 'Manage credit cards, installments, and paylater obligations'}</p>
             </div>
 
             {error && (
@@ -93,11 +96,11 @@ export default function LiabilityManagement() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <Card className="p-6 lg:col-span-1">
                     <h2 className="text-xl font-semibold mb-4">
-                        {editingId ? 'Edit Liability' : 'Add Liability'}
+                        {editingId ? t(language, 'liability.editLiability') : t(language, 'liability.addLiability')}
                     </h2>
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
-                            <Label htmlFor="name">Name</Label>
+                            <Label htmlFor="name">{t(language, 'liability.name')}</Label>
                             <Input
                                 id="name"
                                 value={formData.name}
@@ -108,21 +111,21 @@ export default function LiabilityManagement() {
                         </div>
 
                         <div>
-                            <Label htmlFor="type">Type</Label>
+                            <Label htmlFor="type">{t(language, 'liability.type')}</Label>
                             <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value as 'credit' | 'installment' | 'paylater' })}>
                                 <SelectTrigger>
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="credit">Credit Card</SelectItem>
-                                    <SelectItem value="installment">Installment</SelectItem>
-                                    <SelectItem value="paylater">PayLater</SelectItem>
+                                    <SelectItem value="credit">{t(language, 'liability.credit')}</SelectItem>
+                                    <SelectItem value="installment">{t(language, 'liability.installment')}</SelectItem>
+                                    <SelectItem value="paylater">{t(language, 'liability.paylater')}</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
 
                         <div>
-                            <Label htmlFor="totalAmount">Total Amount</Label>
+                            <Label htmlFor="totalAmount">{t(language, 'liability.totalAmount')}</Label>
                             <Input
                                 id="totalAmount"
                                 type="number"
@@ -134,7 +137,7 @@ export default function LiabilityManagement() {
                         </div>
 
                         <div>
-                            <Label htmlFor="paidAmount">Paid Amount</Label>
+                            <Label htmlFor="paidAmount">{t(language, 'liability.paidAmount')}</Label>
                             <Input
                                 id="paidAmount"
                                 type="number"
@@ -145,7 +148,7 @@ export default function LiabilityManagement() {
                         </div>
 
                         <div>
-                            <Label htmlFor="dueDate">Due Date</Label>
+                            <Label htmlFor="dueDate">{t(language, 'liability.dueDate')}</Label>
                             <Input
                                 id="dueDate"
                                 type="date"
@@ -156,7 +159,7 @@ export default function LiabilityManagement() {
                         </div>
 
                         <div>
-                            <Label htmlFor="note">Note (Optional)</Label>
+                            <Label htmlFor="note">{t(language, 'liability.note')} ({t(language, 'common.optional')})</Label>
                             <Input
                                 id="note"
                                 value={formData.note}
@@ -167,7 +170,7 @@ export default function LiabilityManagement() {
 
                         <div className="flex gap-2">
                             <Button type="submit" disabled={isLoading} className="flex-1">
-                                {editingId ? 'Update' : 'Add'} Liability
+                                {editingId ? t(language, 'common.edit') : t(language, 'common.add')} {t(language, 'liability.addLiability')}
                             </Button>
                             {editingId && (
                                 <Button
@@ -185,7 +188,7 @@ export default function LiabilityManagement() {
                                         });
                                     }}
                                 >
-                                    Cancel
+                                    {t(language, 'common.cancel')}
                                 </Button>
                             )}
                         </div>
@@ -194,9 +197,9 @@ export default function LiabilityManagement() {
 
                 <div className="lg:col-span-2">
                     <Card className="p-6">
-                        <h3 className="text-lg font-semibold mb-4">Active Liabilities</h3>
+                        <h3 className="text-lg font-semibold mb-4">{t(language, 'common.active')}</h3>
                         {liabilities.length === 0 ? (
-                            <p className="text-gray-500">No liabilities recorded</p>
+                            <p className="text-gray-500">{language === 'id' ? 'Tidak ada kewajiban tercatat' : 'No liabilities recorded'}</p>
                         ) : (
                             <div className="space-y-3">
                                 {liabilities.map((liability) => {
@@ -238,8 +241,8 @@ export default function LiabilityManagement() {
                                                     />
                                                 </div>
                                                 <div className="flex justify-between text-xs text-gray-600">
-                                                    <span>Remaining: Rp {remaining.toLocaleString('id-ID')}</span>
-                                                    <span>Due: {new Date(liability.dueDate).toLocaleDateString('id-ID')}</span>
+                                                    <span>{t(language, 'liability.remaining')}: Rp {remaining.toLocaleString('id-ID')}</span>
+                                                    <span>{t(language, 'liability.dueDate')}: {new Date(liability.dueDate).toLocaleDateString('id-ID')}</span>
                                                 </div>
                                             </div>
                                         </div>

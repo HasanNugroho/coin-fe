@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
 import { TrendingUp, TrendingDown, Wallet, DollarSign } from 'lucide-react';
 import { useFinanceStore } from '../../store/finance.store';
+import { useLanguageStore } from '../../store/language.store';
+import { t } from '../../i18n';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { IncomeExpenseChart } from '../../components/charts/IncomeExpenseChart';
 import { KantongBalanceChart } from '../../components/charts/KantongBalanceChart';
@@ -9,6 +11,7 @@ import { DatePickerWithRange } from '@/components/common/DatePickerWithRange';
 
 export function Dashboard() {
     const { dashboardStats, fetchDashboardStats, isLoading } = useFinanceStore();
+    const { language } = useLanguageStore();
 
     useEffect(() => {
         fetchDashboardStats();
@@ -17,35 +20,35 @@ export function Dashboard() {
     if (isLoading || !dashboardStats) {
         return (
             <div className="flex h-96 items-center justify-center">
-                <div className="text-gray-500">Loading dashboard...</div>
+                <div className="text-gray-500">{t(language, 'common.loading')}</div>
             </div>
         );
     }
 
     const stats = [
         {
-            title: 'Total Balance',
+            title: t(language, 'dashboard.totalBalance'),
             value: dashboardStats.totalBalance,
             icon: DollarSign,
             color: 'text-blue-600',
             bgColor: 'bg-blue-100',
         },
         {
-            title: 'Free Cash',
+            title: t(language, 'dashboard.freeCash'),
             value: dashboardStats.freeCash,
             icon: Wallet,
             color: 'text-green-600',
             bgColor: 'bg-green-100',
         },
         {
-            title: 'Total Income',
+            title: t(language, 'dashboard.totalIncome'),
             value: dashboardStats.totalIncome,
             icon: TrendingUp,
             color: 'text-emerald-600',
             bgColor: 'bg-emerald-100',
         },
         {
-            title: 'Total Expense',
+            title: t(language, 'dashboard.totalExpense'),
             value: dashboardStats.totalExpense,
             icon: TrendingDown,
             color: 'text-red-600',
@@ -56,8 +59,8 @@ export function Dashboard() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-                <p className="mt-2 text-gray-600">Overview of your financial status</p>
+                <h1 className="text-3xl font-bold text-gray-900">{t(language, 'dashboard.title')}</h1>
+                <p className="mt-2 text-gray-600">{t(language, 'dashboard.overview')}</p>
             </div>
 
             <div className="flex justify-end">
@@ -86,7 +89,7 @@ export function Dashboard() {
             <div className="grid gap-6 md:grid-cols-2">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Income vs Expense</CardTitle>
+                        <CardTitle>{t(language, 'dashboard.incomeVsExpense')}</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <IncomeExpenseChart data={dashboardStats.monthlyData} />
@@ -95,7 +98,7 @@ export function Dashboard() {
 
                 <Card>
                     <CardHeader>
-                        <CardTitle>Balance per Kantong</CardTitle>
+                        <CardTitle>{t(language, 'dashboard.balancePerKantong')}</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <KantongBalanceChart data={dashboardStats.kantongBalances} />

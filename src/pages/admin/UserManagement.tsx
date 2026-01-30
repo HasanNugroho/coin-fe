@@ -1,11 +1,14 @@
 import { useEffect } from 'react';
 import { CheckCircle, XCircle } from 'lucide-react';
 import { useAdminStore } from '../../store/admin.store';
+import { useLanguageStore } from '../../store/language.store';
+import { t } from '../../i18n';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { formatDate } from '../../utils/format';
 
 export function UserManagement() {
+    const { language } = useLanguageStore();
     const { users, fetchUsers, updateUserStatus, isLoading } = useAdminStore();
 
     useEffect(() => {
@@ -24,7 +27,7 @@ export function UserManagement() {
     if (isLoading && users.length === 0) {
         return (
             <div className="flex h-96 items-center justify-center">
-                <div className="text-gray-500">Loading users...</div>
+                <div className="text-gray-500">{t(language, 'common.loading')}</div>
             </div>
         );
     }
@@ -32,30 +35,30 @@ export function UserManagement() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-3xl font-bold text-gray-900">User Management</h1>
-                <p className="mt-2 text-gray-600">Manage system users and their status</p>
+                <h1 className="text-3xl font-bold text-gray-900">{t(language, 'admin.users')}</h1>
+                <p className="mt-2 text-gray-600">{language === 'id' ? 'Kelola pengguna sistem dan status mereka' : 'Manage system users and their status'}</p>
             </div>
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Users ({users.length})</CardTitle>
+                    <CardTitle>{t(language, 'admin.users')} ({users.length})</CardTitle>
                 </CardHeader>
                 <CardContent>
                     {users.length === 0 ? (
                         <div className="flex h-32 items-center justify-center">
-                            <p className="text-gray-500">No users found</p>
+                            <p className="text-gray-500">{t(language, 'messages.noResults')}</p>
                         </div>
                     ) : (
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm">
                                 <thead>
                                     <tr className="border-b">
-                                        <th className="pb-3 text-left font-medium">Email</th>
-                                        <th className="pb-3 text-left font-medium">Phone</th>
-                                        <th className="pb-3 text-left font-medium">Role</th>
-                                        <th className="pb-3 text-left font-medium">Status</th>
-                                        <th className="pb-3 text-left font-medium">Created</th>
-                                        <th className="pb-3 text-left font-medium">Actions</th>
+                                        <th className="pb-3 text-left font-medium">{t(language, 'auth.email')}</th>
+                                        <th className="pb-3 text-left font-medium">{t(language, 'profile.phone')}</th>
+                                        <th className="pb-3 text-left font-medium">{t(language, 'admin.role')}</th>
+                                        <th className="pb-3 text-left font-medium">{t(language, 'admin.status')}</th>
+                                        <th className="pb-3 text-left font-medium">{language === 'id' ? 'Dibuat' : 'Created'}</th>
+                                        <th className="pb-3 text-left font-medium">{language === 'id' ? 'Aksi' : 'Actions'}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -78,12 +81,12 @@ export function UserManagement() {
                                                     {user.status === 'active' ? (
                                                         <>
                                                             <CheckCircle className="h-4 w-4 text-green-600" />
-                                                            <span className="text-green-600">Active</span>
+                                                            <span className="text-green-600">{t(language, 'admin.active')}</span>
                                                         </>
                                                     ) : (
                                                         <>
                                                             <XCircle className="h-4 w-4 text-red-600" />
-                                                            <span className="text-red-600">Disabled</span>
+                                                            <span className="text-red-600">{t(language, 'admin.disabled')}</span>
                                                         </>
                                                     )}
                                                 </div>
@@ -96,7 +99,7 @@ export function UserManagement() {
                                                     onClick={() => handleToggleStatus(user.id, user.status)}
                                                     disabled={isLoading}
                                                 >
-                                                    {user.status === 'active' ? 'Disable' : 'Enable'}
+                                                    {user.status === 'active' ? (language === 'id' ? 'Nonaktifkan' : 'Disable') : (language === 'id' ? 'Aktifkan' : 'Enable')}
                                                 </Button>
                                             </td>
                                         </tr>

@@ -5,6 +5,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Wallet } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store';
+import { useLanguageStore } from '../../store/language.store';
+import { t } from '../../i18n';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
@@ -25,6 +27,7 @@ type RegisterFormData = z.infer<typeof registerSchema>;
 export function Register() {
     const navigate = useNavigate();
     const { register: registerUser, error, clearError } = useAuthStore();
+    const { language } = useLanguageStore();
     const [isLoading, setIsLoading] = useState(false);
 
     const {
@@ -55,17 +58,21 @@ export function Register() {
                     <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-600">
                         <Wallet className="h-6 w-6 text-white" />
                     </div>
-                    <CardTitle className="text-2xl font-bold">Create an Account</CardTitle>
-                    <CardDescription>Start managing your finances today</CardDescription>
+                    <CardTitle className="text-2xl font-bold">
+                        {language === 'id' ? 'Buat Akun' : 'Create an Account'}
+                    </CardTitle>
+                    <CardDescription>
+                        {language === 'id' ? 'Mulai kelola keuangan Anda hari ini' : 'Start managing your finances today'}
+                    </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="name">Full Name</Label>
+                            <Label htmlFor="name">{t(language, 'auth.name')}</Label>
                             <Input
                                 id="name"
                                 type="text"
-                                placeholder="John Doe"
+                                placeholder={language === 'id' ? 'Nama Lengkap' : 'John Doe'}
                                 {...register('name')}
                             />
                             {errors.name && (
@@ -73,7 +80,7 @@ export function Register() {
                             )}
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="email">Email</Label>
+                            <Label htmlFor="email">{t(language, 'auth.email')}</Label>
                             <Input
                                 id="email"
                                 type="email"
@@ -85,7 +92,7 @@ export function Register() {
                             )}
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="password">Password</Label>
+                            <Label htmlFor="password">{t(language, 'auth.password')}</Label>
                             <Input
                                 id="password"
                                 type="password"
@@ -97,7 +104,7 @@ export function Register() {
                             )}
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="confirmPassword">Confirm Password</Label>
+                            <Label htmlFor="confirmPassword">{t(language, 'auth.confirmPassword')}</Label>
                             <Input
                                 id="confirmPassword"
                                 type="password"
@@ -114,13 +121,15 @@ export function Register() {
                             </div>
                         )}
                         <Button type="submit" className="w-full" disabled={isLoading}>
-                            {isLoading ? 'Creating account...' : 'Create Account'}
+                            {isLoading ? `${t(language, 'auth.register')}...` : t(language, 'auth.register')}
                         </Button>
                     </form>
                     <div className="mt-4 text-center text-sm">
-                        <span className="text-gray-600">Already have an account? </span>
+                        <span className="text-gray-600">
+                            {t(language, 'auth.alreadyHaveAccount')}
+                        </span>
                         <Link to="/login" className="text-blue-600 hover:underline">
-                            Sign in
+                            {t(language, 'auth.signIn')}
                         </Link>
                     </div>
                 </CardContent>

@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useFinanceStore } from '../../store/finance.store';
+import { useLanguageStore } from '../../store/language.store';
+import { t } from '../../i18n';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
@@ -9,6 +11,7 @@ import { Trash2, Edit2 } from 'lucide-react';
 import type { SavingTarget } from '../../types';
 
 export default function SavingTargetManagement() {
+    const { language } = useLanguageStore();
     const { kantongs, savingTargets, isLoading, error, fetchKantongs, fetchSavingTargets, createSavingTarget, updateSavingTarget, deleteSavingTarget } = useFinanceStore();
     const [formData, setFormData] = useState<Omit<SavingTarget, 'id'>>({
         name: '',
@@ -62,7 +65,7 @@ export default function SavingTargetManagement() {
     };
 
     const handleDelete = async (id: string) => {
-        if (confirm('Are you sure you want to delete this saving target?')) {
+        if (confirm(t(language, 'messages.confirmDelete'))) {
             try {
                 await deleteSavingTarget(id);
             } catch (err) {
@@ -93,8 +96,8 @@ export default function SavingTargetManagement() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-3xl font-bold">Saving Targets</h1>
-                <p className="text-gray-600 mt-2">Set and track your savings goals</p>
+                <h1 className="text-3xl font-bold">{t(language, 'savingTarget.title')}</h1>
+                <p className="text-gray-600 mt-2">{language === 'id' ? 'Tetapkan dan lacak tujuan tabungan Anda' : 'Set and track your savings goals'}</p>
             </div>
 
             {error && (
@@ -106,11 +109,11 @@ export default function SavingTargetManagement() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <Card className="p-6 lg:col-span-1">
                     <h2 className="text-xl font-semibold mb-4">
-                        {editingId ? 'Edit Target' : 'Add Target'}
+                        {editingId ? t(language, 'savingTarget.editTarget') : t(language, 'savingTarget.addTarget')}
                     </h2>
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
-                            <Label htmlFor="name">Target Name</Label>
+                            <Label htmlFor="name">{t(language, 'savingTarget.name')}</Label>
                             <Input
                                 id="name"
                                 value={formData.name}
@@ -121,10 +124,10 @@ export default function SavingTargetManagement() {
                         </div>
 
                         <div>
-                            <Label htmlFor="kantong">Kantong</Label>
+                            <Label htmlFor="kantong">{t(language, 'savingTarget.kantong')}</Label>
                             <Select value={formData.kantongId} onValueChange={(value) => setFormData({ ...formData, kantongId: value })}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select kantong" />
+                                    <SelectValue placeholder={t(language, 'transaction.selectKantong')} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {kantongs.map((k) => (
@@ -137,7 +140,7 @@ export default function SavingTargetManagement() {
                         </div>
 
                         <div>
-                            <Label htmlFor="targetAmount">Target Amount</Label>
+                            <Label htmlFor="targetAmount">{t(language, 'savingTarget.targetAmount')}</Label>
                             <Input
                                 id="targetAmount"
                                 type="number"
@@ -149,7 +152,7 @@ export default function SavingTargetManagement() {
                         </div>
 
                         <div>
-                            <Label htmlFor="deadline">Deadline</Label>
+                            <Label htmlFor="deadline">{t(language, 'savingTarget.deadline')}</Label>
                             <Input
                                 id="deadline"
                                 type="date"
@@ -160,7 +163,7 @@ export default function SavingTargetManagement() {
                         </div>
 
                         <div>
-                            <Label htmlFor="note">Note (Optional)</Label>
+                            <Label htmlFor="note">{t(language, 'savingTarget.note')} ({t(language, 'common.optional')})</Label>
                             <Input
                                 id="note"
                                 value={formData.note}
@@ -171,7 +174,7 @@ export default function SavingTargetManagement() {
 
                         <div className="flex gap-2">
                             <Button type="submit" disabled={isLoading} className="flex-1">
-                                {editingId ? 'Update' : 'Add'} Target
+                                {editingId ? t(language, 'common.edit') : t(language, 'common.add')} {t(language, 'savingTarget.addTarget')}
                             </Button>
                             {editingId && (
                                 <Button
@@ -188,7 +191,7 @@ export default function SavingTargetManagement() {
                                         });
                                     }}
                                 >
-                                    Cancel
+                                    {t(language, 'common.cancel')}
                                 </Button>
                             )}
                         </div>
@@ -197,9 +200,9 @@ export default function SavingTargetManagement() {
 
                 <div className="lg:col-span-2">
                     <Card className="p-6">
-                        <h3 className="text-lg font-semibold mb-4">Active Targets</h3>
+                        <h3 className="text-lg font-semibold mb-4">{t(language, 'common.active')}</h3>
                         {savingTargets.length === 0 ? (
-                            <p className="text-gray-500">No saving targets yet</p>
+                            <p className="text-gray-500">{language === 'id' ? 'Belum ada target tabungan' : 'No saving targets yet'}</p>
                         ) : (
                             <div className="space-y-3">
                                 {savingTargets.map((target) => {
@@ -244,9 +247,9 @@ export default function SavingTargetManagement() {
                                                     />
                                                 </div>
                                                 <div className="flex justify-between text-xs text-gray-600">
-                                                    <span>Deadline: {new Date(target.deadline).toLocaleDateString('id-ID')}</span>
+                                                    <span>{t(language, 'savingTarget.deadline')}: {new Date(target.deadline).toLocaleDateString('id-ID')}</span>
                                                     <span className={isOverdue ? 'text-red-600 font-medium' : ''}>
-                                                        {isOverdue ? `${Math.abs(daysRemaining)} days overdue` : `${daysRemaining} days left`}
+                                                        {isOverdue ? `${Math.abs(daysRemaining)} ${language === 'id' ? 'hari terlewat' : 'days overdue'}` : `${daysRemaining} ${language === 'id' ? 'hari tersisa' : 'days left'}`}
                                                     </span>
                                                 </div>
                                             </div>

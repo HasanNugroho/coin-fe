@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useFinanceStore } from '../../store/finance.store';
 import { useAllocationStore } from '../../store/allocation.store';
+import { useLanguageStore } from '../../store/language.store';
+import { t } from '../../i18n';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
@@ -12,6 +14,7 @@ import type { AllocationRule } from '../../types';
 
 export default function AutoAllocationPage() {
     const { kantongs, fetchKantongs } = useFinanceStore();
+    const { language } = useLanguageStore();
     const {
         rules,
         isLoading,
@@ -56,7 +59,7 @@ export default function AutoAllocationPage() {
     };
 
     const handleDeleteRule = async (id: string) => {
-        if (confirm('Are you sure you want to delete this allocation rule?')) {
+        if (confirm(t(language, 'messages.confirmDelete'))) {
             try {
                 await deleteRule(id);
             } catch (err) {
@@ -76,24 +79,23 @@ export default function AutoAllocationPage() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-3xl font-bold text-gray-900">Auto Allocation Settings</h1>
-                <p className="mt-2 text-gray-600">
-                    Define how your income is automatically distributed into pockets
-                </p>
+                <h1 className="text-3xl font-bold text-gray-900">{t(language, 'allocation.settings')}</h1>
+                <p className="mt-2 text-gray-600">{language === 'id' ? 'Atur aturan alokasi pendapatan otomatis Anda' : 'Set up your automatic income allocation rules'}</p>
             </div>
 
             {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded flex justify-between items-center">
-                    <span>{error}</span>
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={clearError}
-                    >
-                        ✕
-                    </Button>
-                </div>
-            )}
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded flex justify-between items-center">
+                <span>{error}</span>
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearError}
+                >
+                    ✕
+                </Button>
+            </div>
+        )
+    }
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-6">
@@ -176,6 +178,6 @@ export default function AutoAllocationPage() {
                 kantongs={kantongs}
                 onSubmit={handleFormSubmit}
             />
-        </div>
+        </div >
     );
 }

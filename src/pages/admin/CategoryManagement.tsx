@@ -4,6 +4,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAdminStore } from '../../store/admin.store';
+import { useLanguageStore } from '../../store/language.store';
+import { t } from '../../i18n';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
@@ -21,6 +23,7 @@ const categorySchema = z.object({
 type CategoryFormData = z.infer<typeof categorySchema>;
 
 export function CategoryManagement() {
+    const { language } = useLanguageStore();
     const {
         categories,
         fetchCategories,
@@ -75,7 +78,7 @@ export function CategoryManagement() {
     };
 
     const handleDelete = async (id: string) => {
-        if (confirm('Are you sure you want to delete this category?')) {
+        if (confirm(t(language, 'messages.confirmDelete'))) {
             try {
                 await deleteCategory(id);
             } catch (error) {
@@ -89,34 +92,34 @@ export function CategoryManagement() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-3xl font-bold text-gray-900">Category Management</h1>
-                <p className="mt-2 text-gray-600">Manage transaction and kantong categories</p>
+                <h1 className="text-3xl font-bold text-gray-900">{t(language, 'admin.categories')}</h1>
+                <p className="mt-2 text-gray-600">{language === 'id' ? 'Kelola kategori transaksi dan kantong' : 'Manage transaction and kantong categories'}</p>
             </div>
 
             <div className="grid gap-6 md:grid-cols-3">
                 <Card className="md:col-span-1">
                     <CardHeader>
                         <CardTitle className="text-lg">
-                            {editingId ? 'Edit Category' : 'Add Category'}
+                            {editingId ? t(language, 'admin.editCategory') : t(language, 'admin.addCategory')}
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
                         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
                             <div className="space-y-2">
-                                <Label htmlFor="name">Category Name</Label>
+                                <Label htmlFor="name">{language === 'id' ? 'Nama Kategori' : 'Category Name'}</Label>
                                 <Input id="name" placeholder="e.g., Food" {...register('name')} />
                                 {errors.name && <p className="text-sm text-red-600">{errors.name.message}</p>}
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="type">Type</Label>
+                                <Label htmlFor="type">{t(language, 'admin.status')}</Label>
                                 <Select value={categoryType} onValueChange={(value) => setValue('type', value as 'transaction' | 'kantong')}>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select type" />
+                                        <SelectValue placeholder={t(language, 'transaction.selectType')} />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="transaction">Transaction</SelectItem>
-                                        <SelectItem value="kantong">Kantong</SelectItem>
+                                        <SelectItem value="transaction">{language === 'id' ? 'Transaksi' : 'Transaction'}</SelectItem>
+                                        <SelectItem value="kantong">{language === 'id' ? 'Kantong' : 'Kantong'}</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -129,13 +132,13 @@ export function CategoryManagement() {
                                     {...register('isDefault')}
                                 />
                                 <Label htmlFor="isDefault" className="cursor-pointer">
-                                    Set as default
+                                    {language === 'id' ? 'Tetapkan sebagai default' : 'Set as default'}
                                 </Label>
                             </div>
 
                             <div className="flex gap-2 pt-4">
                                 <Button type="submit" className="flex-1" disabled={isSubmitting}>
-                                    {isSubmitting ? 'Saving...' : editingId ? 'Update' : 'Add'}
+                                    {isSubmitting ? `${t(language, 'common.save')}...` : editingId ? t(language, 'common.edit') : t(language, 'common.add')}
                                 </Button>
                                 {editingId && (
                                     <Button
@@ -146,7 +149,7 @@ export function CategoryManagement() {
                                             reset();
                                         }}
                                     >
-                                        Cancel
+                                        {t(language, 'common.cancel')}
                                     </Button>
                                 )}
                             </div>
@@ -156,19 +159,19 @@ export function CategoryManagement() {
 
                 <Card className="md:col-span-2">
                     <CardHeader>
-                        <CardTitle>Categories</CardTitle>
+                        <CardTitle>{t(language, 'admin.categories')}</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <Tabs value={selectedType} onValueChange={(value) => setSelectedType(value as 'transaction' | 'kantong')}>
                             <TabsList>
-                                <TabsTrigger value="transaction">Transaction</TabsTrigger>
-                                <TabsTrigger value="kantong">Kantong</TabsTrigger>
+                                <TabsTrigger value="transaction">{language === 'id' ? 'Transaksi' : 'Transaction'}</TabsTrigger>
+                                <TabsTrigger value="kantong">{language === 'id' ? 'Kantong' : 'Kantong'}</TabsTrigger>
                             </TabsList>
 
                             <TabsContent value={selectedType} className="mt-4">
                                 {filteredCategories.length === 0 ? (
                                     <div className="flex h-32 items-center justify-center">
-                                        <p className="text-gray-500">No categories found</p>
+                                        <p className="text-gray-500">{t(language, 'messages.noResults')}</p>
                                     </div>
                                 ) : (
                                     <div className="space-y-2">
@@ -181,7 +184,7 @@ export function CategoryManagement() {
                                                     <div>
                                                         <p className="font-medium">{category.name}</p>
                                                         {category.isDefault && (
-                                                            <p className="text-xs text-gray-500">Default</p>
+                                                            <p className="text-xs text-gray-500">{language === 'id' ? 'Default' : 'Default'}</p>
                                                         )}
                                                     </div>
                                                 </div>

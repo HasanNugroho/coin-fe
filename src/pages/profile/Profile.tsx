@@ -3,6 +3,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useProfileStore } from '../../store/profile.store';
+import { useLanguageStore } from '../../store/language.store';
+import { t } from '../../i18n';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
@@ -25,6 +27,7 @@ type ProfileFormData = z.infer<typeof profileSchema>;
 
 export function Profile() {
     const { profile, fetchProfile, updateProfile, isLoading, error, clearError } = useProfileStore();
+    const { language } = useLanguageStore();
     const [isEditing, setIsEditing] = useState(false);
 
     useEffect(() => {
@@ -74,7 +77,7 @@ export function Profile() {
     if (isLoading && !profile) {
         return (
             <div className="flex h-96 items-center justify-center">
-                <div className="text-gray-500">Loading profile...</div>
+                <div className="text-gray-500">{t(language, 'common.loading')}</div>
             </div>
         );
     }
@@ -82,18 +85,18 @@ export function Profile() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-3xl font-bold text-gray-900">Profile</h1>
-                <p className="mt-2 text-gray-600">Manage your personal finance profile</p>
+                <h1 className="text-3xl font-bold text-gray-900">{t(language, 'profile.title')}</h1>
+                <p className="mt-2 text-gray-600">{language === 'id' ? 'Kelola profil keuangan pribadi Anda' : 'Manage your personal finance profile'}</p>
             </div>
 
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                     <div>
-                        <CardTitle>Personal Information</CardTitle>
-                        <CardDescription>View and edit your profile details</CardDescription>
+                        <CardTitle>{language === 'id' ? 'Informasi Pribadi' : 'Personal Information'}</CardTitle>
+                        <CardDescription>{language === 'id' ? 'Lihat dan edit detail profil Anda' : 'View and edit your profile details'}</CardDescription>
                     </div>
                     {!isEditing && (
-                        <Button onClick={() => setIsEditing(true)}>Edit Profile</Button>
+                        <Button onClick={() => setIsEditing(true)}>{t(language, 'profile.editProfile')}</Button>
                     )}
                 </CardHeader>
                 <CardContent>
