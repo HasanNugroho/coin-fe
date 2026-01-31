@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type { User, Category, DefaultKantongTemplate } from '../types';
 import { authService } from '../services/auth.service';
 import { adminService } from '../services/admin.service';
+import { categoryService } from '../services/category.service';
 
 interface DashboardStats {
     totalUsers: number;
@@ -24,8 +25,8 @@ interface AdminState {
     updateUserStatus: (id: string, status: 'active' | 'disabled') => Promise<void>;
     deleteUser: (id: string) => Promise<void>;
     fetchCategories: () => Promise<void>;
-    createCategory: (category: Omit<Category, 'id'>) => Promise<void>;
-    updateCategory: (id: string, updates: Partial<Category>) => Promise<void>;
+    createCategory: (category: { name: string; type: 'transaction' | 'pocket'; is_default?: boolean; parent_id?: string; transaction_type?: 'income' | 'expense' | string; description?: string; icon?: string; color?: string; }) => Promise<void>;
+    updateCategory: (id: string, updates: { name?: string; type?: 'transaction' | 'pocket'; is_default?: boolean; parent_id?: string; transaction_type?: 'income' | 'expense' | string; description?: string; icon?: string; color?: string; }) => Promise<void>;
     deleteCategory: (id: string) => Promise<void>;
     fetchKantongTemplates: () => Promise<void>;
     updateKantongTemplates: (templates: DefaultKantongTemplate[]) => Promise<void>;
@@ -103,7 +104,7 @@ export const useAdminStore = create<AdminState>((set) => ({
     fetchCategories: async () => {
         set({ isLoading: true, error: null });
         try {
-            const categories = await adminService.getCategories();
+            const categories = await categoryService.listCategories();
             set({ categories, isLoading: false });
         } catch (error) {
             set({
@@ -116,8 +117,17 @@ export const useAdminStore = create<AdminState>((set) => ({
     createCategory: async (category) => {
         set({ isLoading: true, error: null });
         try {
-            await adminService.createCategory(category);
-            const categories = await adminService.getCategories();
+            await categoryService.createCategory({
+                name: category.name,
+                type: category.type as 'transaction' | 'pocket',
+                is_default: category.is_default,
+                parent_id: category.parent_id,
+                transaction_type: category.transaction_type,
+                description: category.description,
+                icon: category.icon,
+                color: category.color,
+            });
+            const categories = await categoryService.listCategories();
             set({ categories, isLoading: false });
         } catch (error) {
             set({
@@ -131,8 +141,13 @@ export const useAdminStore = create<AdminState>((set) => ({
     updateCategory: async (id, updates) => {
         set({ isLoading: true, error: null });
         try {
-            await adminService.updateCategory(id, updates);
-            const categories = await adminService.getCategories();
+            await categoryService.updateCategory(id, {
+                name: updates.name,
+                type: updates.type as 'transaction' | 'pocket' | undefined,
+                is_default: updates.is_default,
+                parent_id: updates.parent_id || undefined,
+            });
+            const categories = await categoryService.listCategories();
             set({ categories, isLoading: false });
         } catch (error) {
             set({
@@ -146,8 +161,8 @@ export const useAdminStore = create<AdminState>((set) => ({
     deleteCategory: async (id) => {
         set({ isLoading: true, error: null });
         try {
-            await adminService.deleteCategory(id);
-            const categories = await adminService.getCategories();
+            await categoryService.deleteCategory(id);
+            const categories = await categoryService.listCategories();
             set({ categories, isLoading: false });
         } catch (error) {
             set({

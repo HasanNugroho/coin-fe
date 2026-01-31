@@ -30,7 +30,7 @@ function App() {
       await restoreSession();
     };
     initializeSession();
-  }, [restoreSession]);
+  }, []);
 
   return (
     <BrowserRouter>

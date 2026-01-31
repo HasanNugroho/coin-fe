@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Trash2, Edit } from 'lucide-react';
+import { Trash2, Edit, Search } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -13,14 +13,120 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/ca
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import type { Category } from '../../types';
+import * as LucideIcons from 'lucide-react';
 
 const categorySchema = z.object({
     name: z.string().min(2, 'Name must be at least 2 characters'),
-    type: z.enum(['transaction', 'kantong']),
-    isDefault: z.boolean(),
+    type: z.enum(['transaction', 'pocket']),
+    is_default: z.boolean().default(false),
+    parent_id: z.string().optional(),
+    transaction_type: z.enum(['income', 'expense']).optional(),
+    description: z.string().optional(),
+    icon: z.string().optional(),
+    color: z.string().optional(),
 });
 
 type CategoryFormData = z.infer<typeof categorySchema>;
+
+// Get all icon names from lucide-react
+const iconNames = Object.keys(LucideIcons).filter(
+    (key) =>
+        key !== 'createLucideIcon' &&
+        key !== 'default' &&
+        typeof LucideIcons[key as keyof typeof LucideIcons] === 'object'
+);
+
+// Icon picker component
+function IconPicker({
+    value,
+    onChange,
+    language
+}: {
+    value: string;
+    onChange: (icon: string) => void;
+    language: string;
+}) {
+    const [isOpen, setIsOpen] = useState(false);
+    const [search, setSearch] = useState('');
+
+    const filteredIcons = iconNames.filter((name) =>
+        name.toLowerCase().includes(search.toLowerCase())
+    );
+
+    const IconComponent = value && LucideIcons[value as keyof typeof LucideIcons] as any;
+
+
+    return (
+        <div className="relative">
+            <div
+                onClick={() => setIsOpen(!isOpen)}
+                className="flex items-center gap-2 p-2 border rounded-md cursor-pointer hover:bg-gray-50"
+            >
+                {IconComponent ? (
+                    <>
+                        <IconComponent className="h-5 w-5" />
+                        <span className="text-sm">{value}</span>
+                    </>
+                ) : (
+                    <span className="text-sm text-gray-500">
+                        {language === 'id' ? 'Pilih ikon' : 'Select icon'}
+                    </span>
+                )}
+            </div>
+
+            {isOpen && (
+                <>
+                    <div
+                        className="fixed inset-0 z-40"
+                        onClick={() => setIsOpen(false)}
+                    />
+                    <div className="absolute z-50 mt-2 w-full bg-white border rounded-lg shadow-lg max-h-96 overflow-hidden">
+                        <div className="p-2 border-b sticky top-0 bg-white">
+                            <div className="relative">
+                                <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
+                                <Input
+                                    placeholder={language === 'id' ? 'Cari ikon...' : 'Search icons...'}
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                    className="pl-8"
+                                    onClick={(e) => e.stopPropagation()}
+                                />
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-6 gap-1 p-2 overflow-y-auto max-h-80">
+                            {filteredIcons.slice(0, 100).map((iconName) => {
+                                const Icon = LucideIcons[iconName as keyof typeof LucideIcons];
+                                return (
+                                    <button
+                                        key={iconName}
+                                        type="button"
+                                        onClick={() => {
+                                            onChange(iconName);
+                                            setIsOpen(false);
+                                            setSearch('');
+                                        }}
+                                        className={`p-3 hover:bg-gray-100 rounded-md flex items-center justify-center ${value === iconName ? 'bg-blue-100' : ''
+                                            }`}
+                                        title={iconName}
+                                    >
+                                        <Icon className="h-5 w-5" />
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        {filteredIcons.length > 100 && (
+                            <div className="p-2 text-xs text-center text-gray-500 border-t">
+                                {language === 'id'
+                                    ? `Menampilkan 100 dari ${filteredIcons.length} ikon`
+                                    : `Showing 100 of ${filteredIcons.length} icons`}
+                            </div>
+                        )}
+                    </div>
+                </>
+            )}
+        </div>
+    );
+}
 
 export function CategoryManagement() {
     const { language } = useLanguageStore();
@@ -30,9 +136,12 @@ export function CategoryManagement() {
         createCategory,
         updateCategory,
         deleteCategory,
+        isLoading: storeLoading,
+        error: storeError,
     } = useAdminStore();
     const [editingId, setEditingId] = useState<string | null>(null);
-    const [selectedType, setSelectedType] = useState<'transaction' | 'kantong'>('transaction');
+    const [selectedType, setSelectedType] = useState<'transaction' | 'pocket'>('transaction');
+    const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
     useEffect(() => {
         fetchCategories();
@@ -50,7 +159,12 @@ export function CategoryManagement() {
         defaultValues: {
             name: '',
             type: 'transaction',
-            isDefault: false,
+            is_default: false,
+            parent_id: undefined,
+            transaction_type: undefined,
+            description: '',
+            icon: '',
+            color: '#000000',
         },
     });
 
@@ -58,11 +172,21 @@ export function CategoryManagement() {
 
     const handleFormSubmit = async (data: CategoryFormData) => {
         try {
+            // Clean up empty strings to undefined
+            const cleanData = {
+                ...data,
+                parent_id: data.parent_id || undefined,
+                transaction_type: data.transaction_type || undefined,
+                description: data.description || undefined,
+                icon: data.icon || undefined,
+                color: data.color || undefined,
+            };
+
             if (editingId) {
-                await updateCategory(editingId, data);
+                await updateCategory(editingId, cleanData);
                 setEditingId(null);
             } else {
-                await createCategory(data);
+                await createCategory(cleanData);
             }
             reset();
         } catch (error) {
@@ -73,17 +197,21 @@ export function CategoryManagement() {
     const handleEdit = (category: Category) => {
         setEditingId(category.id);
         setValue('name', category.name);
-        setValue('type', category.type);
-        setValue('isDefault', category.isDefault);
+        setValue('type', category.type as 'transaction' | 'pocket');
+        setValue('is_default', category.is_default);
+        setValue('parent_id', category.parent_id || undefined);
+        setValue('transaction_type', (category.transaction_type as 'income' | 'expense') || undefined);
+        setValue('description', category.description || '');
+        setValue('icon', category.icon || '');
+        setValue('color', category.color || '#000000');
     };
 
     const handleDelete = async (id: string) => {
-        if (confirm(t(language, 'messages.confirmDelete'))) {
-            try {
-                await deleteCategory(id);
-            } catch (error) {
-                console.error('Failed to delete category:', error);
-            }
+        try {
+            await deleteCategory(id);
+            setDeleteConfirm(null);
+        } catch (error) {
+            console.error('Failed to delete category:', error);
         }
     };
 
@@ -93,51 +221,143 @@ export function CategoryManagement() {
         <div className="space-y-6">
             <div>
                 <h1 className="text-3xl font-bold text-gray-900">{t(language, 'admin.categories')}</h1>
-                <p className="mt-2 text-gray-600">{language === 'id' ? 'Kelola kategori transaksi dan kantong' : 'Manage transaction and kantong categories'}</p>
+                <p className="mt-2 text-gray-600">{language === 'id' ? 'Kelola kategori transaksi dan kantong' : 'Manage transaction and pocket categories'}</p>
             </div>
+
+            {storeError && (
+                <div className="rounded-md bg-red-50 p-4">
+                    <p className="text-sm text-red-800">{storeError}</p>
+                </div>
+            )}
 
             <div className="grid gap-6 md:grid-cols-3">
                 <Card className="md:col-span-1">
                     <CardHeader>
                         <CardTitle className="text-lg">
-                            {editingId ? t(language, 'admin.editCategory') : t(language, 'admin.addCategory')}
+                            {editingId ? (language === 'id' ? 'Edit Kategori' : 'Edit Category') : (language === 'id' ? 'Tambah Kategori' : 'Add Category')}
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
                         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
                             <div className="space-y-2">
                                 <Label htmlFor="name">{language === 'id' ? 'Nama Kategori' : 'Category Name'}</Label>
-                                <Input id="name" placeholder="e.g., Food" {...register('name')} />
+                                <Input id="name" placeholder={language === 'id' ? 'Contoh: Makanan' : 'e.g., Food'} {...register('name')} />
                                 {errors.name && <p className="text-sm text-red-600">{errors.name.message}</p>}
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="type">{t(language, 'admin.status')}</Label>
-                                <Select value={categoryType} onValueChange={(value) => setValue('type', value as 'transaction' | 'kantong')}>
+                                <Label htmlFor="type">{language === 'id' ? 'Tipe Kategori' : 'Category Type'}</Label>
+                                <Select value={categoryType} onValueChange={(value) => setValue('type', value as 'transaction' | 'pocket')}>
                                     <SelectTrigger>
-                                        <SelectValue placeholder={t(language, 'transaction.selectType')} />
+                                        <SelectValue placeholder={language === 'id' ? 'Pilih tipe' : 'Select type'} />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="transaction">{language === 'id' ? 'Transaksi' : 'Transaction'}</SelectItem>
-                                        <SelectItem value="kantong">{language === 'id' ? 'Kantong' : 'Kantong'}</SelectItem>
+                                        <SelectItem value="pocket">{language === 'id' ? 'Kantong' : 'Pocket'}</SelectItem>
                                     </SelectContent>
                                 </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="parent_id">{language === 'id' ? 'Kategori Induk (Opsional)' : 'Parent Category (Optional)'}</Label>
+                                <Select value={watch('parent_id') || 'none'} onValueChange={(value) => setValue('parent_id', value === 'none' ? undefined : value)}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder={language === 'id' ? 'Tidak ada' : 'None'} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="none">{language === 'id' ? 'Tidak ada' : 'None'}</SelectItem>
+                                        {filteredCategories
+                                            .filter(cat => !cat.parent_id && cat.id !== editingId)
+                                            .map((cat) => (
+                                                <SelectItem key={cat.id} value={cat.id}>
+                                                    {cat.name}
+                                                </SelectItem>
+                                            ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="transaction_type">{language === 'id' ? 'Tipe Transaksi (Opsional)' : 'Transaction Type (Optional)'}</Label>
+                                <Select
+                                    value={watch('transaction_type') || 'none'}
+                                    onValueChange={(value) =>
+                                        setValue('transaction_type', value === 'none' ? undefined : (value as 'income' | 'expense'))
+                                    }>
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="none">
+                                            {language === 'id' ? 'Tidak ada' : 'None'}
+                                        </SelectItem>
+                                        <SelectItem value="income">
+                                            {language === 'id' ? 'Pendapatan' : 'Income'}
+                                        </SelectItem>
+                                        <SelectItem value="expense">
+                                            {language === 'id' ? 'Pengeluaran' : 'Expense'}
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="description">
+                                    {language === 'id' ? 'Deskripsi (Opsional)' : 'Description (Optional)'}
+                                </Label>
+                                <Input
+                                    id="description"
+                                    {...register('description')}
+                                    placeholder={language === 'id' ? 'Masukkan deskripsi' : 'Enter description'}
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="icon">
+                                    {language === 'id' ? 'Ikon (Opsional)' : 'Icon (Optional)'}
+                                </Label>
+                                <IconPicker
+                                    value={watch('icon') || ''}
+                                    onChange={(icon) => setValue('icon', icon)}
+                                    language={language}
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="color">
+                                    {language === 'id' ? 'Warna (Opsional)' : 'Color (Optional)'}
+                                </Label>
+                                <div className="flex gap-2 items-center">
+                                    <Input
+                                        id="color"
+                                        type="color"
+                                        {...register('color')}
+                                        className="w-20 h-10"
+                                    />
+                                    <Input
+                                        type="text"
+                                        value={watch('color') || '#000000'}
+                                        onChange={(e) => setValue('color', e.target.value)}
+                                        placeholder="#000000"
+                                        className="flex-1"
+                                    />
+                                </div>
                             </div>
 
                             <div className="flex items-center space-x-2">
                                 <input
                                     type="checkbox"
-                                    id="isDefault"
+                                    id="is_default"
                                     className="h-4 w-4 rounded border-gray-300"
-                                    {...register('isDefault')}
+                                    {...register('is_default')}
                                 />
-                                <Label htmlFor="isDefault" className="cursor-pointer">
+                                <Label htmlFor="is_default" className="cursor-pointer">
                                     {language === 'id' ? 'Tetapkan sebagai default' : 'Set as default'}
                                 </Label>
                             </div>
 
                             <div className="flex gap-2 pt-4">
-                                <Button type="submit" className="flex-1" disabled={isSubmitting}>
+                                <Button type="submit" className="flex-1" disabled={isSubmitting || storeLoading}>
                                     {isSubmitting ? `${t(language, 'common.save')}...` : editingId ? t(language, 'common.edit') : t(language, 'common.add')}
                                 </Button>
                                 {editingId && (
@@ -162,10 +382,10 @@ export function CategoryManagement() {
                         <CardTitle>{t(language, 'admin.categories')}</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <Tabs value={selectedType} onValueChange={(value) => setSelectedType(value as 'transaction' | 'kantong')}>
+                        <Tabs value={selectedType} onValueChange={(value) => setSelectedType(value as 'transaction' | 'pocket')}>
                             <TabsList>
                                 <TabsTrigger value="transaction">{language === 'id' ? 'Transaksi' : 'Transaction'}</TabsTrigger>
-                                <TabsTrigger value="kantong">{language === 'id' ? 'Kantong' : 'Kantong'}</TabsTrigger>
+                                <TabsTrigger value="pocket">{language === 'id' ? 'Kantong' : 'Pocket'}</TabsTrigger>
                             </TabsList>
 
                             <TabsContent value={selectedType} className="mt-4">
@@ -175,37 +395,76 @@ export function CategoryManagement() {
                                     </div>
                                 ) : (
                                     <div className="space-y-2">
-                                        {filteredCategories.map((category) => (
-                                            <div
-                                                key={category.id}
-                                                className="flex items-center justify-between rounded-lg border border-gray-200 p-3"
-                                            >
-                                                <div className="flex items-center gap-3">
-                                                    <div>
-                                                        <p className="font-medium">{category.name}</p>
-                                                        {category.isDefault && (
-                                                            <p className="text-xs text-gray-500">{language === 'id' ? 'Default' : 'Default'}</p>
+                                        {filteredCategories.map((category) => {
+                                            const CategoryIcon = category.icon && LucideIcons[category.icon as keyof typeof LucideIcons];
+
+                                            return (
+                                                <div
+                                                    key={category.id}
+                                                    className="flex items-center justify-between rounded-lg border border-gray-200 p-3 hover:bg-gray-50"
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        {CategoryIcon && (
+                                                            <div
+                                                                className="p-2 rounded-md flex items-center justify-center"
+                                                                style={{ backgroundColor: category.color || '#e5e7eb' }}
+                                                            >
+                                                                <CategoryIcon
+                                                                    className="h-5 w-5"
+                                                                    style={{ color: category.color ? '#fff' : '#374151' }}
+                                                                />
+                                                            </div>
                                                         )}
+                                                        <div>
+                                                            <p className="font-medium">{category.name}</p>
+                                                            {category.description && (
+                                                                <p className="text-sm text-gray-500">{category.description}</p>
+                                                            )}
+                                                            <div className="flex gap-2 mt-1">
+                                                                {category.is_default && (
+                                                                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                                                                        {language === 'id' ? 'Default' : 'Default'}
+                                                                    </span>
+                                                                )}
+                                                                {category.parent_id && (
+                                                                    <span className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded">
+                                                                        {language === 'id' ? 'Sub-kategori' : 'Subcategory'}
+                                                                    </span>
+                                                                )}
+                                                                {category.transaction_type && (
+                                                                    <span className={`text-xs px-2 py-1 rounded ${category.transaction_type === 'income'
+                                                                        ? 'bg-green-100 text-green-800'
+                                                                        : 'bg-red-100 text-red-800'
+                                                                        }`}>
+                                                                        {category.transaction_type === 'income'
+                                                                            ? (language === 'id' ? 'Pendapatan' : 'Income')
+                                                                            : (language === 'id' ? 'Pengeluaran' : 'Expense')}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex gap-2">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            onClick={() => handleEdit(category)}
+                                                            disabled={storeLoading}
+                                                        >
+                                                            <Edit className="h-4 w-4" />
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            onClick={() => setDeleteConfirm(category.id)}
+                                                            disabled={storeLoading}
+                                                        >
+                                                            <Trash2 className="h-4 w-4 text-red-600" />
+                                                        </Button>
                                                     </div>
                                                 </div>
-                                                <div className="flex gap-2">
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        onClick={() => handleEdit(category)}
-                                                    >
-                                                        <Edit className="h-4 w-4" />
-                                                    </Button>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        onClick={() => handleDelete(category.id)}
-                                                    >
-                                                        <Trash2 className="h-4 w-4 text-red-600" />
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 )}
                             </TabsContent>
@@ -213,6 +472,40 @@ export function CategoryManagement() {
                     </CardContent>
                 </Card>
             </div>
+
+            {deleteConfirm && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <Card className="border-red-200 bg-white max-w-md w-full mx-4">
+                        <CardHeader>
+                            <CardTitle className="text-red-800">
+                                {language === 'id' ? 'Konfirmasi Hapus' : 'Confirm Delete'}
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="mb-4 text-sm text-gray-600">
+                                {language === 'id'
+                                    ? 'Apakah Anda yakin ingin menghapus kategori ini? Tindakan ini tidak dapat dibatalkan.'
+                                    : 'Are you sure you want to delete this category? This action cannot be undone.'}
+                            </p>
+                            <div className="flex gap-3 justify-end">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setDeleteConfirm(null)}
+                                >
+                                    {language === 'id' ? 'Batal' : 'Cancel'}
+                                </Button>
+                                <Button
+                                    onClick={() => deleteConfirm && handleDelete(deleteConfirm)}
+                                    className="bg-red-600 hover:bg-red-700"
+                                    disabled={storeLoading}
+                                >
+                                    {language === 'id' ? 'Hapus' : 'Delete'}
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+            )}
         </div>
     );
 }

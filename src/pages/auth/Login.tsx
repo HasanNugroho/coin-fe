@@ -32,8 +32,8 @@ export function Login() {
     } = useForm<LoginFormData>({
         resolver: zodResolver(loginSchema),
         defaultValues: {
-            email: 'demo@coin.app',
-            password: 'demo123',
+            email: 'admin@admin.com',
+            password: 'admin123',
         },
     });
 
@@ -71,7 +71,7 @@ export function Login() {
                             <Input
                                 id="email"
                                 type="email"
-                                placeholder="demo@coin.app"
+                                placeholder="admin@admin.com"
                                 {...register('email')}
                             />
                             {errors.email && (
@@ -110,8 +110,8 @@ export function Login() {
                     <div className="mt-4 rounded-md bg-blue-50 p-3">
                         <p className="text-xs text-blue-800">
                             <strong>{language === 'id' ? 'Kredensial Demo:' : 'Demo credentials:'}</strong><br />
-                            Email: demo@coin.app<br />
-                            Password: demo123
+                            Email: admin@admin.com<br />
+                            Password: admin123
                         </p>
                     </div>
                 </CardContent>

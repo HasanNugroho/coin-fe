@@ -118,8 +118,17 @@ export interface AdminUser {
 export interface Category {
     id: string;
     name: string;
-    type: 'transaction' | 'kantong';
-    isDefault: boolean;
+    type: 'transaction' | 'pocket' | string;
+    transaction_type: 'income' | 'expense' | string;
+    description?: string;
+    icon?: string;
+    color?: string;
+    is_default: boolean;
+    parent_id?: string | null;
+    user_id?: string | null;
+    created_at: string;
+    updated_at: string;
+    deleted_at?: string | null;
 }
 
 export interface DefaultKantongTemplate {

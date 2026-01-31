@@ -76,9 +76,13 @@ export const authService = {
 
     async refresh(refreshToken: string): Promise<AuthResponse> {
         const response = await api.post<ApiResponse<RefreshTokenResponse>>(
-            '/v1/auth/refresh-token',
+            '/v1/auth/refresh',
             { refresh_token: refreshToken }
         );
+
+        if (response.status !== 200) {
+            throw new Error(response.data.message);
+        }
 
         const newAccessToken = response.data.data.access_token;
 

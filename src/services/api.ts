@@ -1,5 +1,5 @@
 import axios from 'axios';
-
+import { useAuthStore } from '../store/auth.store';
 const apiBaseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
 const apiTimeout = parseInt(import.meta.env.VITE_API_TIMEOUT || '10000', 10);
 
@@ -43,6 +43,16 @@ export const setRefreshToken = (token: string | null) => {
 export const getAuthToken = () => accessToken;
 export const getRefreshToken = () => refreshToken;
 
+api.interceptors.request.use(
+    (config) => {
+        if (accessToken && !config.headers['Authorization']) {
+            config.headers['Authorization'] = `Bearer ${accessToken}`;
+        }
+        return config;
+    },
+    (error) => Promise.reject(error)
+);
+
 api.interceptors.response.use(
     (response) => response,
     async (error) => {
@@ -71,7 +81,7 @@ api.interceptors.response.use(
 
             try {
                 const response = await axios.post(
-                    `${apiBaseURL}/v1/auth/refresh-token`,
+                    `${apiBaseURL}/v1/auth/refresh`,
                     { refresh_token: refreshToken },
                     { timeout: apiTimeout }
                 );
@@ -88,6 +98,11 @@ api.interceptors.response.use(
                 isRefreshing = false;
                 setAuthToken(null);
                 setRefreshToken(null);
+                useAuthStore.setState({
+                    user: null,
+                    tokens: null,
+                    isAuthenticated: false,
+                });
                 return Promise.reject(refreshError);
             }
         }

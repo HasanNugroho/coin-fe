@@ -95,6 +95,7 @@ export const useAuthStore = create<AuthState>()(
                 try {
                     const response = await authService.refresh(tokens.refreshToken);
                     setAuthToken(response.tokens.accessToken);
+                    setRefreshToken(response.tokens.refreshToken);
                     set({
                         user: response.user,
                         tokens: response.tokens,
@@ -106,6 +107,7 @@ export const useAuthStore = create<AuthState>()(
                         isAuthenticated: false,
                     });
                     setAuthToken(null);
+                    setRefreshToken(null);
                 }
             },
 
@@ -143,34 +145,13 @@ export const useAuthStore = create<AuthState>()(
                 }
             },
 
-            restoreSession: async () => {
+            restoreSession: () => {
                 const { tokens } = get();
-                if (!tokens?.accessToken) return;
+                if (!tokens?.accessToken || !tokens?.refreshToken) return;
 
-                try {
-                    const validation = await authService.validateToken(tokens.accessToken);
-                    if (validation.valid) {
-                        setAuthToken(tokens.accessToken);
-                        setRefreshToken(tokens.refreshToken);
-                        set({ isAuthenticated: true });
-                    } else {
-                        set({
-                            user: null,
-                            tokens: null,
-                            isAuthenticated: false,
-                        });
-                        setAuthToken(null);
-                        setRefreshToken(null);
-                    }
-                } catch {
-                    set({
-                        user: null,
-                        tokens: null,
-                        isAuthenticated: false,
-                    });
-                    setAuthToken(null);
-                    setRefreshToken(null);
-                }
+                setAuthToken(tokens.accessToken);
+                setRefreshToken(tokens.refreshToken);
+                set({ isAuthenticated: true });
             },
 
             clearError: () => set({ error: null }),
