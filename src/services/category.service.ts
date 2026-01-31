@@ -1,5 +1,6 @@
 import api from './api';
 import type { Category } from '../types';
+import { handleApiError } from '../utils/error-handler';
 
 interface ApiResponse<T> {
     success: boolean;
@@ -40,7 +41,7 @@ export const categoryService = {
             return response.data.data;
         } catch (error) {
             console.error('Failed to create category:', error);
-            throw error;
+            handleApiError(error);
         }
     },
 
@@ -65,7 +66,7 @@ export const categoryService = {
             return response.data.data;
         } catch (error) {
             console.error('Failed to update category:', error);
-            throw error;
+            handleApiError(error);
         }
     },
 
@@ -74,7 +75,7 @@ export const categoryService = {
             await api.delete(`/v1/categories/${id}`);
         } catch (error) {
             console.error('Failed to delete category:', error);
-            throw error;
+            handleApiError(error);
         }
     },
 

@@ -1,5 +1,6 @@
 import api from './api';
 import type { PocketTemplate, CreatePocketTemplateRequest, UpdatePocketTemplateRequest } from '../types';
+import { handleApiError } from '../utils/error-handler';
 
 interface ApiResponse<T> {
     success: boolean;
@@ -17,7 +18,7 @@ export const pocketTemplateService = {
             return response.data.data;
         } catch (error) {
             console.error('Failed to create pocket template:', error);
-            throw error;
+            handleApiError(error);
         }
     },
 
@@ -29,7 +30,7 @@ export const pocketTemplateService = {
             return response.data.data;
         } catch (error) {
             console.error('Failed to get pocket template:', error);
-            throw error;
+            handleApiError(error);
         }
     },
 
@@ -42,7 +43,7 @@ export const pocketTemplateService = {
             return response.data.data;
         } catch (error) {
             console.error('Failed to update pocket template:', error);
-            throw error;
+            handleApiError(error);
         }
     },
 
@@ -51,7 +52,7 @@ export const pocketTemplateService = {
             await api.delete(`/v1/pocket-templates/${id}`);
         } catch (error) {
             console.error('Failed to delete pocket template:', error);
-            throw error;
+            handleApiError(error);
         }
     },
 
@@ -66,7 +67,7 @@ export const pocketTemplateService = {
             return response.data.data;
         } catch (error) {
             console.error('Failed to fetch pocket templates:', error);
-            throw error;
+            handleApiError(error);
         }
     },
 
@@ -81,7 +82,7 @@ export const pocketTemplateService = {
             return response.data.data;
         } catch (error) {
             console.error('Failed to fetch active pocket templates:', error);
-            throw error;
+            handleApiError(error);
         }
     },
 
@@ -100,7 +101,7 @@ export const pocketTemplateService = {
             return response.data.data;
         } catch (error) {
             console.error('Failed to fetch pocket templates by type:', error);
-            throw error;
+            handleApiError(error);
         }
     },
 };

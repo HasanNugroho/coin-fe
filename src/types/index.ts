@@ -18,31 +18,47 @@ export interface Kantong {
     deleted_at?: string | null;
 }
 
-export type TransactionCategory =
-    | 'Food'
-    | 'Transport'
-    | 'Shopping'
-    | 'Salary'
-    | 'Freelance'
-    | 'Bills'
-    | 'Entertainment'
-    | 'Custom';
-
-export type TransactionType = 'income' | 'expense' | 'transfer';
-export type TransactionSource = 'manual' | 'bot' | 'llm';
+export type TransactionType = 'INCOME' | 'EXPENSE' | 'TRANSFER' | 'DEBT_PAYMENT' | 'WITHDRAW';
 
 export interface Transaction {
     id: string;
+    user_id: string;
     type: TransactionType;
     amount: number;
+    pocket_from: string | null;
+    pocket_to: string | null;
+    category_id: string | null;
+    platform_id: string | null;
+    note: string | null;
     date: string;
-    category: TransactionCategory;
-    kantongId: string;
-    platformId?: string;
-    source?: TransactionSource;
-    note?: string;
-    linkedTransactionId?: string;
-    liabilityId?: string;
+    ref: string | null;
+    created_at: string;
+    updated_at: string;
+    deleted_at: string | null;
+}
+
+export interface CreateTransactionRequest {
+    type: TransactionType;
+    amount: number;
+    pocket_from?: string | null;
+    pocket_to?: string | null;
+    category_id?: string | null;
+    platform_id?: string | null;
+    note?: string | null;
+    date: string;
+    ref?: string | null;
+}
+
+export interface UpdateTransactionRequest {
+    type?: TransactionType;
+    amount?: number;
+    pocket_from?: string | null;
+    pocket_to?: string | null;
+    category_id?: string | null;
+    platform_id?: string | null;
+    note?: string | null;
+    date?: string;
+    ref?: string | null;
 }
 
 export type PlatformType = 'bank' | 'ewallet' | 'cash' | 'credit';
@@ -52,6 +68,30 @@ export interface Platform {
     name: string;
     type: PlatformType;
     isSystem: boolean;
+}
+
+export type AdminPlatformType = 'BANK' | 'E_WALLET' | 'CASH' | 'ATM';
+
+export interface AdminPlatform {
+    id: string;
+    name: string;
+    type: AdminPlatformType;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+    deleted_at: string | null;
+}
+
+export interface CreateAdminPlatformRequest {
+    name: string;
+    type: AdminPlatformType;
+    is_active?: boolean;
+}
+
+export interface UpdateAdminPlatformRequest {
+    name?: string;
+    type?: AdminPlatformType;
+    is_active?: boolean;
 }
 
 export interface AllocationRule {

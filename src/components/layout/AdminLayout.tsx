@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Wallet, LogOut, LayoutDashboard, Users, Settings, Package, User } from 'lucide-react';
+import { Wallet, LogOut, LayoutDashboard, Users, Settings, Package, User, Zap } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store';
 import { Button } from '../ui/button';
 import { useLanguageStore } from '../../store/language.store';
@@ -31,6 +31,7 @@ export function AdminLayout() {
         { path: '/admin/users', label: t(language, 'navigation.users'), icon: Users },
         { path: '/admin/categories', label: t(language, 'navigation.categories'), icon: Settings },
         { path: '/admin/pocket-templates', label: t(language, 'navigation.kantong-template'), icon: Package },
+        { path: '/admin/platforms', label: t(language, 'admin.platforms'), icon: Zap },
     ];
 
     return (

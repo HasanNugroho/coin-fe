@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { toast } from 'sonner';
 import type { Kantong, KantongType, Category } from '../../types';
 import { useLanguageStore } from '../../store/language.store';
 import { t } from '../../i18n';
 import { categoryService } from '../../services/category.service';
+import { getErrorMessage } from '../../utils/error-handler';
 import {
     Dialog,
     DialogContent,
@@ -105,20 +107,35 @@ export function KantongDialog({ open, onOpenChange, kantong, onSubmit }: Kantong
     };
 
     const handleFormSubmit = async (data: KantongFormData) => {
-        const submitData: Omit<Kantong, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'deleted_at'> = {
-            name: data.name,
-            type: data.type,
-            category_id: data.category_id || null,
-            balance: 0,
-            is_default: false,
-            is_active: data.is_active !== undefined ? data.is_active : true,
-            is_locked: kantong?.is_locked || false,
-            icon: data.icon || null,
-            icon_color: data.icon_color || null,
-            background_color: data.background_color || null,
-        };
-        await onSubmit(submitData);
-        onOpenChange(false);
+        try {
+            const submitData: Omit<Kantong, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'deleted_at'> = {
+                name: data.name,
+                type: data.type,
+                category_id: data.category_id || null,
+                balance: 0,
+                is_default: false,
+                is_active: data.is_active !== undefined ? data.is_active : true,
+                is_locked: kantong?.is_locked || false,
+                icon: data.icon || null,
+                icon_color: data.icon_color || null,
+                background_color: data.background_color || null,
+            };
+            await onSubmit(submitData);
+            toast.success(
+                isEditMode
+                    ? t(language, 'messages.updateSuccess')
+                    : t(language, 'messages.createSuccess')
+            );
+            onOpenChange(false);
+        } catch (error) {
+            const errorMsg = getErrorMessage(
+                error,
+                isEditMode
+                    ? t(language, 'messages.updateFailed')
+                    : t(language, 'messages.createFailed')
+            );
+            toast.error(errorMsg);
+        }
     };
 
     return (

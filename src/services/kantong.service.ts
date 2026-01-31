@@ -1,5 +1,6 @@
 import type { Kantong } from '../types';
 import api from './api';
+import { handleApiError } from '../utils/error-handler';
 
 interface ApiResponse<T> {
     success: boolean;
@@ -13,7 +14,8 @@ export const kantongService = {
             const response = await api.get<ApiResponse<Kantong[]>>('/v1/pockets');
             return response.data.data || [];
         } catch (error) {
-            throw error instanceof Error ? error : new Error('Failed to fetch kantongs');
+            console.error('Failed to fetch kantongs:', error);
+            handleApiError(error);
         }
     },
 
@@ -22,11 +24,13 @@ export const kantongService = {
             const response = await api.get<ApiResponse<Kantong>>(`/v1/pockets/${id}`);
             return response.data.data || null;
         } catch (error) {
-            const axiosError = error as { response?: { status: number } };
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const axiosError = error as any;
             if (axiosError?.response?.status === 404) {
                 return null;
             }
-            throw error instanceof Error ? error : new Error('Failed to fetch kantong');
+            console.error(`Failed to fetch kantong ${id}:`, error);
+            handleApiError(error);
         }
     },
 
@@ -35,7 +39,8 @@ export const kantongService = {
             const response = await api.post<ApiResponse<Kantong>>('/v1/pockets', kantong);
             return response.data.data;
         } catch (error) {
-            throw error instanceof Error ? error : new Error('Failed to create kantong');
+            console.error('Failed to create kantong:', error);
+            handleApiError(error);
         }
     },
 
@@ -44,7 +49,8 @@ export const kantongService = {
             const response = await api.put<ApiResponse<Kantong>>(`/v1/pockets/${id}`, updates);
             return response.data.data;
         } catch (error) {
-            throw error instanceof Error ? error : new Error('Failed to update kantong');
+            console.error(`Failed to update kantong ${id}:`, error);
+            handleApiError(error);
         }
     },
 
@@ -52,7 +58,8 @@ export const kantongService = {
         try {
             await api.delete(`/v1/pockets/${id}`);
         } catch (error) {
-            throw error instanceof Error ? error : new Error('Failed to delete kantong');
+            console.error(`Failed to delete kantong ${id}:`, error);
+            handleApiError(error);
         }
     },
 };

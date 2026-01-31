@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Kantong, Transaction, DashboardStats, ReportData, Platform, AllocationRule, Liability, SavingTarget } from '../types';
+import type { Kantong, Transaction, DashboardStats, ReportData, Platform, AllocationRule, Liability, SavingTarget, CreateTransactionRequest, UpdateTransactionRequest } from '../types';
 import { kantongService } from '../services/kantong.service';
 import { transactionService } from '../services/transaction.service';
 import { reportService } from '../services/report.service';
@@ -19,22 +19,18 @@ interface FinanceState {
     reportData: ReportData | null;
     isLoading: boolean;
     error: string | null;
+    selectedPocketId: string | null;
 
     fetchKantongs: () => Promise<void>;
     createKantong: (kantong: Omit<Kantong, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'deleted_at'>) => Promise<void>;
     updateKantong: (id: string, updates: Omit<Kantong, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'deleted_at'>) => Promise<void>;
     deleteKantong: (id: string) => Promise<void>;
 
-    fetchTransactions: (filters?: {
-        startDate?: string;
-        endDate?: string;
-        category?: string;
-        kantongId?: string;
-        type?: string;
-    }) => Promise<void>;
-    createTransaction: (transaction: Omit<Transaction, 'id'>) => Promise<void>;
-    updateTransaction: (id: string, updates: Partial<Transaction>) => Promise<void>;
+    fetchTransactions: (pocketId?: string | null) => Promise<void>;
+    createTransaction: (transaction: CreateTransactionRequest) => Promise<void>;
+    updateTransaction: (id: string, updates: UpdateTransactionRequest) => Promise<void>;
     deleteTransaction: (id: string) => Promise<void>;
+    setSelectedPocketId: (pocketId: string | null) => void;
 
     fetchPlatforms: () => Promise<void>;
     createPlatform: (platform: Omit<Platform, 'id'>) => Promise<void>;
@@ -73,6 +69,7 @@ export const useFinanceStore = create<FinanceState>((set) => ({
     reportData: null,
     isLoading: false,
     error: null,
+    selectedPocketId: null,
 
     fetchKantongs: async () => {
         set({ isLoading: true, error: null });
@@ -132,10 +129,12 @@ export const useFinanceStore = create<FinanceState>((set) => ({
         }
     },
 
-    fetchTransactions: async (filters) => {
+    fetchTransactions: async (pocketId) => {
         set({ isLoading: true, error: null });
         try {
-            const transactions = await transactionService.getAll(filters);
+            const transactions = pocketId
+                ? await transactionService.listByPocket(pocketId)
+                : await transactionService.listAll();
             set({ transactions, isLoading: false });
         } catch (error) {
             set({
@@ -149,7 +148,7 @@ export const useFinanceStore = create<FinanceState>((set) => ({
         set({ isLoading: true, error: null });
         try {
             await transactionService.create(transaction);
-            const transactions = await transactionService.getAll();
+            const transactions = await transactionService.listAll();
             set({ transactions, isLoading: false });
         } catch (error) {
             set({
@@ -164,7 +163,7 @@ export const useFinanceStore = create<FinanceState>((set) => ({
         set({ isLoading: true, error: null });
         try {
             await transactionService.update(id, updates);
-            const transactions = await transactionService.getAll();
+            const transactions = await transactionService.listAll();
             set({ transactions, isLoading: false });
         } catch (error) {
             set({
@@ -179,7 +178,7 @@ export const useFinanceStore = create<FinanceState>((set) => ({
         set({ isLoading: true, error: null });
         try {
             await transactionService.delete(id);
-            const transactions = await transactionService.getAll();
+            const transactions = await transactionService.listAll();
             set({ transactions, isLoading: false });
         } catch (error) {
             set({
@@ -188,6 +187,10 @@ export const useFinanceStore = create<FinanceState>((set) => ({
             });
             throw error;
         }
+    },
+
+    setSelectedPocketId: (pocketId) => {
+        set({ selectedPocketId: pocketId });
     },
 
     fetchPlatforms: async () => {
