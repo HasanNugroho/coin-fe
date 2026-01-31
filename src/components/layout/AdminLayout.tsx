@@ -30,7 +30,7 @@ export function AdminLayout() {
         { path: '/admin', label: t(language, 'navigation.dashboard'), icon: LayoutDashboard },
         { path: '/admin/users', label: t(language, 'navigation.users'), icon: Users },
         { path: '/admin/categories', label: t(language, 'navigation.categories'), icon: Settings },
-        { path: '/admin/kantong-template', label: t(language, 'navigation.kantong-template'), icon: Package },
+        { path: '/admin/pocket-templates', label: t(language, 'navigation.kantong-template'), icon: Package },
     ];
 
     return (

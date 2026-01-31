@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Trash2, Edit, Search } from 'lucide-react';
+import { Trash2, Edit } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/ta
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import type { Category } from '../../types';
 import * as LucideIcons from 'lucide-react';
+import { IconPicker } from '@/components/ui/iconPicker';
 
 const categorySchema = z.object({
     name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -27,106 +28,6 @@ const categorySchema = z.object({
 });
 
 type CategoryFormData = z.infer<typeof categorySchema>;
-
-// Get all icon names from lucide-react
-const iconNames = Object.keys(LucideIcons).filter(
-    (key) =>
-        key !== 'createLucideIcon' &&
-        key !== 'default' &&
-        typeof LucideIcons[key as keyof typeof LucideIcons] === 'object'
-);
-
-// Icon picker component
-function IconPicker({
-    value,
-    onChange,
-    language
-}: {
-    value: string;
-    onChange: (icon: string) => void;
-    language: string;
-}) {
-    const [isOpen, setIsOpen] = useState(false);
-    const [search, setSearch] = useState('');
-
-    const filteredIcons = iconNames.filter((name) =>
-        name.toLowerCase().includes(search.toLowerCase())
-    );
-
-    const IconComponent = value && LucideIcons[value as keyof typeof LucideIcons] as any;
-
-
-    return (
-        <div className="relative">
-            <div
-                onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 p-2 border rounded-md cursor-pointer hover:bg-gray-50"
-            >
-                {IconComponent ? (
-                    <>
-                        <IconComponent className="h-5 w-5" />
-                        <span className="text-sm">{value}</span>
-                    </>
-                ) : (
-                    <span className="text-sm text-gray-500">
-                        {language === 'id' ? 'Pilih ikon' : 'Select icon'}
-                    </span>
-                )}
-            </div>
-
-            {isOpen && (
-                <>
-                    <div
-                        className="fixed inset-0 z-40"
-                        onClick={() => setIsOpen(false)}
-                    />
-                    <div className="absolute z-50 mt-2 w-full bg-white border rounded-lg shadow-lg max-h-96 overflow-hidden">
-                        <div className="p-2 border-b sticky top-0 bg-white">
-                            <div className="relative">
-                                <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
-                                <Input
-                                    placeholder={language === 'id' ? 'Cari ikon...' : 'Search icons...'}
-                                    value={search}
-                                    onChange={(e) => setSearch(e.target.value)}
-                                    className="pl-8"
-                                    onClick={(e) => e.stopPropagation()}
-                                />
-                            </div>
-                        </div>
-                        <div className="grid grid-cols-6 gap-1 p-2 overflow-y-auto max-h-80">
-                            {filteredIcons.slice(0, 100).map((iconName) => {
-                                const Icon = LucideIcons[iconName as keyof typeof LucideIcons];
-                                return (
-                                    <button
-                                        key={iconName}
-                                        type="button"
-                                        onClick={() => {
-                                            onChange(iconName);
-                                            setIsOpen(false);
-                                            setSearch('');
-                                        }}
-                                        className={`p-3 hover:bg-gray-100 rounded-md flex items-center justify-center ${value === iconName ? 'bg-blue-100' : ''
-                                            }`}
-                                        title={iconName}
-                                    >
-                                        <Icon className="h-5 w-5" />
-                                    </button>
-                                );
-                            })}
-                        </div>
-                        {filteredIcons.length > 100 && (
-                            <div className="p-2 text-xs text-center text-gray-500 border-t">
-                                {language === 'id'
-                                    ? `Menampilkan 100 dari ${filteredIcons.length} ikon`
-                                    : `Showing 100 of ${filteredIcons.length} icons`}
-                            </div>
-                        )}
-                    </div>
-                </>
-            )}
-        </div>
-    );
-}
 
 export function CategoryManagement() {
     const { language } = useLanguageStore();

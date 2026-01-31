@@ -15,7 +15,7 @@ import AutoAllocationPage from './pages/settings/AutoAllocationPage';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { UserManagement } from './pages/admin/UserManagement';
 import { CategoryManagement } from './pages/admin/CategoryManagement';
-import { KantongTemplateManagement } from './pages/admin/KantongTemplateManagement';
+import { PocketTemplateManagement } from './pages/admin/PocketTemplateManagement';
 import { Layout } from './components/layout/Layout';
 import { AdminLayout } from './components/layout/AdminLayout';
 import { ProtectedRoute } from './components/common/ProtectedRoute';
@@ -75,7 +75,7 @@ function App() {
           <Route index element={<AdminDashboard />} />
           <Route path="users" element={<UserManagement />} />
           <Route path="categories" element={<CategoryManagement />} />
-          <Route path="kantong-template" element={<KantongTemplateManagement />} />
+          <Route path="pocket-templates" element={<PocketTemplateManagement />} />
         </Route>
       </Routes>
     </BrowserRouter>

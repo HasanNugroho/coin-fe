@@ -193,3 +193,45 @@ export interface ReportData {
         balance: number;
     }[];
 }
+
+export type PocketTemplateType = 'main' | 'saving' | 'allocation';
+
+export interface PocketTemplate {
+    id: string;
+    name: string;
+    type: PocketTemplateType;
+    category_id: string;
+    is_default: boolean;
+    is_active: boolean;
+    order: number;
+    icon?: string;
+    icon_color?: string;
+    background_color?: string;
+    created_at: string;
+    updated_at: string;
+    deleted_at: string | null;
+}
+
+export interface CreatePocketTemplateRequest {
+    name: string;
+    type: PocketTemplateType;
+    category_id: string;
+    is_default?: boolean;
+    is_active?: boolean;
+    order?: number;
+    icon?: string;
+    icon_color?: string;
+    background_color?: string;
+}
+
+export interface UpdatePocketTemplateRequest {
+    name?: string;
+    type?: PocketTemplateType;
+    category_id?: string;
+    is_default?: boolean;
+    is_active?: boolean;
+    order?: number;
+    icon?: string;
+    icon_color?: string;
+    background_color?: string;
+}
