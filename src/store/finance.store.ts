@@ -21,8 +21,8 @@ interface FinanceState {
     error: string | null;
 
     fetchKantongs: () => Promise<void>;
-    createKantong: (kantong: Omit<Kantong, 'id'>) => Promise<void>;
-    updateKantong: (id: string, updates: Partial<Kantong>) => Promise<void>;
+    createKantong: (kantong: Omit<Kantong, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'deleted_at'>) => Promise<void>;
+    updateKantong: (id: string, updates: Omit<Kantong, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'deleted_at'>) => Promise<void>;
     deleteKantong: (id: string) => Promise<void>;
 
     fetchTransactions: (filters?: {

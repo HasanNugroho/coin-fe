@@ -1,22 +1,21 @@
-export type KantongCategory =
-    | 'Daily Needs'
-    | 'Bills'
-    | 'Lifestyle'
-    | 'Emergency'
-    | 'Savings'
-    | 'Investment'
-    | 'Custom';
-
-export type KantongType = 'main' | 'allocation' | 'saving';
+export type KantongType = 'main' | 'allocation' | 'saving' | 'debt' | 'system';
 
 export interface Kantong {
     id: string;
+    user_id: string;
     name: string;
-    category: KantongCategory;
     type: KantongType;
+    category_id?: string | null;
     balance: number;
-    isLocked: boolean;
-    color?: string;
+    is_default: boolean;
+    is_active: boolean;
+    is_locked: boolean;
+    icon?: string | null;
+    icon_color?: string | null;
+    background_color?: string | null;
+    created_at: string;
+    updated_at: string;
+    deleted_at?: string | null;
 }
 
 export type TransactionCategory =
@@ -134,9 +133,9 @@ export interface Category {
 export interface DefaultKantongTemplate {
     id: string;
     name: string;
-    category: KantongCategory;
+    category_id?: string;
     initialBalance?: number;
-    isLocked: boolean;
+    is_locked: boolean;
 }
 
 export interface AuthTokens {
