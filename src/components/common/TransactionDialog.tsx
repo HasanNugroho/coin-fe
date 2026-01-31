@@ -78,7 +78,8 @@ export function TransactionDialog({ open, onOpenChange, transaction, onSubmit }:
         };
 
         fetchData();
-    }, [open, kantongs.length, platforms.length, fetchKantongs, fetchPlatforms]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [open]);
 
     const {
         register,

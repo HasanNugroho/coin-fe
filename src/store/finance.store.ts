@@ -1,17 +1,17 @@
 import { create } from 'zustand';
-import type { Kantong, Transaction, DashboardStats, ReportData, Platform, AllocationRule, Liability, SavingTarget, CreateTransactionRequest, UpdateTransactionRequest } from '../types';
+import type { Kantong, Transaction, DashboardStats, ReportData, AllocationRule, Liability, SavingTarget, CreateTransactionRequest, UpdateTransactionRequest, AdminPlatform } from '../types';
 import { kantongService } from '../services/kantong.service';
 import { transactionService } from '../services/transaction.service';
 import { reportService } from '../services/report.service';
-import { platformService } from '../services/platform.service';
 import { allocationService } from '../services/allocation.service';
 import { liabilityService } from '../services/liability.service';
 import { savingTargetService } from '../services/saving-target.service';
+import { adminPlatformService } from '@/services/admin-platform.service';
 
 interface FinanceState {
     kantongs: Kantong[];
     transactions: Transaction[];
-    platforms: Platform[];
+    platforms: AdminPlatform[];
     allocationRules: AllocationRule[];
     liabilities: Liability[];
     savingTargets: SavingTarget[];
@@ -20,6 +20,11 @@ interface FinanceState {
     isLoading: boolean;
     error: string | null;
     selectedPocketId: string | null;
+
+    // Add loading states for individual fetches
+    isLoadingKantongs: boolean;
+    isLoadingPlatforms: boolean;
+    isLoadingTransactions: boolean;
 
     fetchKantongs: () => Promise<void>;
     createKantong: (kantong: Omit<Kantong, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'deleted_at'>) => Promise<void>;
@@ -33,8 +38,8 @@ interface FinanceState {
     setSelectedPocketId: (pocketId: string | null) => void;
 
     fetchPlatforms: () => Promise<void>;
-    createPlatform: (platform: Omit<Platform, 'id'>) => Promise<void>;
-    updatePlatform: (id: string, updates: Partial<Platform>) => Promise<void>;
+    createPlatform: (platform: Omit<AdminPlatform, 'id'>) => Promise<void>;
+    updatePlatform: (id: string, updates: Partial<AdminPlatform>) => Promise<void>;
     deletePlatform: (id: string) => Promise<void>;
 
     fetchAllocationRules: () => Promise<void>;
@@ -58,7 +63,7 @@ interface FinanceState {
     clearError: () => void;
 }
 
-export const useFinanceStore = create<FinanceState>((set) => ({
+export const useFinanceStore = create<FinanceState>((set, get) => ({
     kantongs: [],
     transactions: [],
     platforms: [],
@@ -70,16 +75,22 @@ export const useFinanceStore = create<FinanceState>((set) => ({
     isLoading: false,
     error: null,
     selectedPocketId: null,
+    isLoadingKantongs: false,
+    isLoadingPlatforms: false,
+    isLoadingTransactions: false,
 
     fetchKantongs: async () => {
-        set({ isLoading: true, error: null });
+        // Prevent duplicate fetches
+        if (get().isLoadingKantongs) return;
+
+        set({ isLoadingKantongs: true, error: null });
         try {
             const kantongs = await kantongService.getAll();
-            set({ kantongs, isLoading: false });
+            set({ kantongs, isLoadingKantongs: false });
         } catch (error) {
             set({
                 error: error instanceof Error ? error.message : 'Failed to fetch kantongs',
-                isLoading: false,
+                isLoadingKantongs: false,
             });
         }
     },
@@ -130,16 +141,19 @@ export const useFinanceStore = create<FinanceState>((set) => ({
     },
 
     fetchTransactions: async (pocketId) => {
-        set({ isLoading: true, error: null });
+        // Prevent duplicate fetches
+        if (get().isLoadingTransactions) return;
+
+        set({ isLoadingTransactions: true, error: null });
         try {
             const transactions = pocketId
                 ? await transactionService.listByPocket(pocketId)
                 : await transactionService.listAll();
-            set({ transactions, isLoading: false });
+            set({ transactions, isLoadingTransactions: false });
         } catch (error) {
             set({
                 error: error instanceof Error ? error.message : 'Failed to fetch transactions',
-                isLoading: false,
+                isLoadingTransactions: false,
             });
         }
     },
@@ -148,8 +162,16 @@ export const useFinanceStore = create<FinanceState>((set) => ({
         set({ isLoading: true, error: null });
         try {
             await transactionService.create(transaction);
-            const transactions = await transactionService.listAll();
-            set({ transactions, isLoading: false });
+            // Refetch with current filter
+            const currentPocketId = get().selectedPocketId;
+            const transactions = currentPocketId
+                ? await transactionService.listByPocket(currentPocketId)
+                : await transactionService.listAll();
+
+            // Also refetch kantongs to update balances
+            const kantongs = await kantongService.getAll();
+
+            set({ transactions, kantongs, isLoading: false });
         } catch (error) {
             set({
                 error: error instanceof Error ? error.message : 'Failed to create transaction',
@@ -163,8 +185,16 @@ export const useFinanceStore = create<FinanceState>((set) => ({
         set({ isLoading: true, error: null });
         try {
             await transactionService.update(id, updates);
-            const transactions = await transactionService.listAll();
-            set({ transactions, isLoading: false });
+            // Refetch with current filter
+            const currentPocketId = get().selectedPocketId;
+            const transactions = currentPocketId
+                ? await transactionService.listByPocket(currentPocketId)
+                : await transactionService.listAll();
+
+            // Also refetch kantongs to update balances
+            const kantongs = await kantongService.getAll();
+
+            set({ transactions, kantongs, isLoading: false });
         } catch (error) {
             set({
                 error: error instanceof Error ? error.message : 'Failed to update transaction',
@@ -178,8 +208,16 @@ export const useFinanceStore = create<FinanceState>((set) => ({
         set({ isLoading: true, error: null });
         try {
             await transactionService.delete(id);
-            const transactions = await transactionService.listAll();
-            set({ transactions, isLoading: false });
+            // Refetch with current filter
+            const currentPocketId = get().selectedPocketId;
+            const transactions = currentPocketId
+                ? await transactionService.listByPocket(currentPocketId)
+                : await transactionService.listAll();
+
+            // Also refetch kantongs to update balances
+            const kantongs = await kantongService.getAll();
+
+            set({ transactions, kantongs, isLoading: false });
         } catch (error) {
             set({
                 error: error instanceof Error ? error.message : 'Failed to delete transaction',
@@ -194,14 +232,17 @@ export const useFinanceStore = create<FinanceState>((set) => ({
     },
 
     fetchPlatforms: async () => {
-        set({ isLoading: true, error: null });
+        // Prevent duplicate fetches
+        if (get().isLoadingPlatforms) return;
+
+        set({ isLoadingPlatforms: true, error: null });
         try {
-            const platforms = await platformService.getAll();
-            set({ platforms, isLoading: false });
+            const platforms = await adminPlatformService.listPlatforms();
+            set({ platforms, isLoadingPlatforms: false });
         } catch (error) {
             set({
                 error: error instanceof Error ? error.message : 'Failed to fetch platforms',
-                isLoading: false,
+                isLoadingPlatforms: false,
             });
         }
     },
@@ -209,8 +250,8 @@ export const useFinanceStore = create<FinanceState>((set) => ({
     createPlatform: async (platform) => {
         set({ isLoading: true, error: null });
         try {
-            await platformService.create(platform);
-            const platforms = await platformService.getAll();
+            await adminPlatformService.createPlatform(platform);
+            const platforms = await adminPlatformService.listPlatforms();
             set({ platforms, isLoading: false });
         } catch (error) {
             set({
@@ -224,8 +265,8 @@ export const useFinanceStore = create<FinanceState>((set) => ({
     updatePlatform: async (id, updates) => {
         set({ isLoading: true, error: null });
         try {
-            await platformService.update(id, updates);
-            const platforms = await platformService.getAll();
+            await adminPlatformService.updatePlatform(id, updates);
+            const platforms = await adminPlatformService.listPlatforms();
             set({ platforms, isLoading: false });
         } catch (error) {
             set({
@@ -239,8 +280,8 @@ export const useFinanceStore = create<FinanceState>((set) => ({
     deletePlatform: async (id) => {
         set({ isLoading: true, error: null });
         try {
-            await platformService.delete(id);
-            const platforms = await platformService.getAll();
+            await adminPlatformService.deletePlatform(id);
+            const platforms = await adminPlatformService.listPlatforms();
             set({ platforms, isLoading: false });
         } catch (error) {
             set({

@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { Plus, ArrowUpCircle, ArrowDownCircle, Trash2, Edit, Search } from 'lucide-react';
 import { useFinanceStore } from '../../store/finance.store';
 import { useLanguageStore } from '../../store/language.store';
@@ -32,10 +32,25 @@ export function TransactionList() {
     const [sortBy, setSortBy] = useState<SortOption>('dateDesc');
     const [filterPocketId, setFilterPocketId] = useState<string | null>(selectedPocketId);
 
+    // Use ref to track if initial fetch has been done
+    const hasFetchedRef = useRef(false);
+
     useEffect(() => {
-        fetchTransactions(filterPocketId);
-        fetchKantongs();
-    }, [fetchTransactions, fetchKantongs, filterPocketId]);
+        // Only fetch on mount or when filterPocketId changes
+        const fetchData = async () => {
+            try {
+                await Promise.all([
+                    fetchTransactions(filterPocketId),
+                    fetchKantongs()
+                ]);
+            } catch (error) {
+                console.error('Failed to fetch data:', error);
+            }
+        };
+
+        fetchData();
+        hasFetchedRef.current = true;
+    }, [filterPocketId]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleCreateOrUpdate = async (data: CreateTransactionRequest) => {
         if (selectedTransaction) {
@@ -172,6 +187,7 @@ export function TransactionList() {
 
     return (
         <div className="space-y-6">
+            {/* Rest of the JSX remains the same */}
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900">{t(language, 'transaction.title')}</h1>

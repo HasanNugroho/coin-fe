@@ -61,15 +61,6 @@ export interface UpdateTransactionRequest {
     ref?: string | null;
 }
 
-export type PlatformType = 'bank' | 'ewallet' | 'cash' | 'credit';
-
-export interface Platform {
-    id: string;
-    name: string;
-    type: PlatformType;
-    isSystem: boolean;
-}
-
 export type AdminPlatformType = 'BANK' | 'E_WALLET' | 'CASH' | 'ATM';
 
 export interface AdminPlatform {
